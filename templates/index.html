@@ -1,0 +1,72 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width"></meta>
+        <title> Talk Tracer </title>
+        
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script type="text/javascript">
+    
+        //str to json
+        function strToJson(str){
+            var json = eval('(' + str + ')');
+            return json;
+        }
+
+        //jQuery
+        $("document").ready(function() {
+            //submit click function
+            $("#button-submit").click(function(){
+                var text = $("#text-input").val();
+                if(/^[0-9]+$/.test(text)){
+    
+                    //send data to the server
+                    var data = {};
+                    data['str'] = text
+                    
+                    $.post("/request",data,
+                    function(data,status){
+                        $("#tri").text(data);
+                    },"json");
+    
+                }else
+                {
+                    alert('Please enter an integer');
+                }
+            });
+        });
+        </script>
+    </head>
+
+    <body>
+        <div class="nav-bar"></div>
+
+        <div class="row">
+            <div class="left-column">          
+                <div id="tri" class="ontology">
+                    ontology view
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div id="app" class="input">
+    
+                    <product :premium="premium" @add-to-cart="addToCart" @remove-from-cart="removeFromCart"></product>
+                    
+                </div>
+
+                <div id="tri" class="triple">
+                    <label for="tri"> Triple Result </label>
+                    <p/>
+                    <textarea style="height: 100%; padding: 20px;"> print triple here! </textarea>
+                </div>
+            </div>
+        </div>
+
+        
+
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <script src="{{ url_for('static',filename='main.js') }}"></script>
+    </body>
+</html>
