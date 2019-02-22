@@ -151,7 +151,7 @@ Vue.component('product-review', {
 
         <p>
             <label> Sentence </label>
-            <textarea id = "text-input"></textarea>
+            <textarea id = "text-input" v-model="typeSen"></textarea>
         </p>
 
         <!--p>
@@ -164,8 +164,7 @@ Vue.component('product-review', {
         </p-->
         
         <p>
-            <!--input type="submit" value="Run"-->
-            <button type="submit" id = "button-submit"> Run </button>
+            <button type="submit" class="button" id = "button-submit"> Run </button>
         </p>
     </form>
     `,

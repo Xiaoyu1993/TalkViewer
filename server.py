@@ -32,8 +32,10 @@ def my_form():
 @app.route('/request', methods=['POST',"GET"])
 def my_form_post():
     text = request.form.get("str")
-    iterate = int(text)
-    processed_text = Montecarlo(iterate)
+    #iterate = int(text)
+    #processed_text = Montecarlo(iterate)
+    print(text)
+    processed_text = str(text)
     return processed_text
 
 

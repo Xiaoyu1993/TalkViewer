@@ -19,20 +19,21 @@
             //submit click function
             $("#button-submit").click(function(){
                 var text = $("#text-input").val();
-                if(/^[0-9]+$/.test(text)){
-    
+                if(true){
+                    
                     //send data to the server
                     var data = {};
                     data['str'] = text
-                    
+
                     $.post("/request",data,
                     function(data,status){
+                        alert(data['str']);
                         $("#tri").text(data);
                     },"json");
     
                 }else
                 {
-                    alert('Please enter an integer');
+                    alert('Please enter a sentence');
                 }
             });
         });
