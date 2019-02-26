@@ -18,7 +18,7 @@ body {
 
   .ontology{
     display: flex;
-    height: 85%;
+    height: 30%;
 
   }
 
@@ -118,4 +118,14 @@ body {
 
   .outOfStock{
     text-decoration: line-through;
+  }
+
+  .links line {
+    stroke: #666;
+    stroke-opacity: 0.6;
+  }
+
+  .nodes circle{
+    stroke: #16C0B0;
+    stroke-width: 1.5px;
   }
