@@ -28,7 +28,6 @@ linkList = [{"source": "Napoleon", "target": "Myriel", "value": 5},
 DrawNetwork(nodeList, linkList);
 
 function DrawNetwork(nodeList, linkList){
-    console.log("in DrawNetwork()!")
     var n_margin = {top: 20, right: 20, bottom: 30, left: 40},
     n_width = 1200 - margin.left - margin.right,
     n_height = 800 - margin.top - margin.bottom;
@@ -75,6 +74,7 @@ function DrawNetwork(nodeList, linkList){
     var circles = node.append("circle")
         .attr("r", function(d) { return d.credit*6;})
         .attr("fill", "#16C0B0")
+        .attr("stroke", "#333")
         .call(d3.drag()
             .on("start", dragstarted)
             .on("drag", dragged)

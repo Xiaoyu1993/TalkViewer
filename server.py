@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, jsonify
 import random as r
 import math as m
+import json
 
 app = Flask(__name__)
 def Montecarlo(iterate):
@@ -24,17 +25,26 @@ def Montecarlo(iterate):
     # It works!
     return str(pi)
 
+#str to json
+def strToJson(s):
+    stru = {
+        "sent": s
+    }
+    js = json.dumps(stru)
+    return js
+
 @app.route('/')
 def my_form():
     return render_template('index.html')
 
 
 @app.route('/request', methods=['POST',"GET"])
-def my_form_post():
+def main_loop():
     text = request.form.get("str")
+    print("Input sentence: " + text)
     #iterate = int(text)
     #processed_text = Montecarlo(iterate)
-    return text
+    return strToJson(text)
 
 
 if __name__ == '__main__':

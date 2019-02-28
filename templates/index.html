@@ -8,37 +8,46 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script type="text/javascript">
-    
-        //str to json
-        function strToJson(str){
-            var json = eval('(' + str + ')');
-            return json;
-        }
+            //jQuery
+            $("document").ready(function() {
+                //submit click function
+                $("#button-submit").click(function(){
+                    var text = $("#text-input").val();
+                    if(text != null){
+                        //send data to the server
+                        var data = {};
+                        data['str'] = text
+                        console.log(data)
+                        
+                        // Flask style post
+                        $.post("/request", data, function(data,status){
+                            //alert('flask post');
+                            $("#onto").text(data.sent);
+                        },"json");
 
-        //jQuery
-        $("document").ready(function() {
-            //submit click function
-            $("#button-submit").click(function(){
-                var text = $("#text-input").val();
-                if(text != null){
-    
-                    //send data to the server
-                    var data = {};
-                    data['str'] = text
-                    console.log(data)
-
-                    $.post("/request",data,
-                    function(data,status){
-                        alert('here');
-                        $("#tri").text(data);
-                    },"json");
-    
-                }else
-                {
-                    alert('Please enter a sentence');
-                }
+                        // Ajax style post
+                        /*$.ajax({
+                            type: 'POST',
+                            url: "/request",
+                            data: data,
+                            dataType: 'json', 
+                            success: function(data) { 
+                                //alert('ajax post');
+                                console.log(data);
+                                $("#onto").text(data.sent);
+                            },
+                            error: function(xhr, type) {
+                                alert(xhr.responseText);
+                                alert(type);
+                            }
+                        });*/
+        
+                    }else
+                    {
+                        alert('Please enter a sentence');
+                    }
+                });
             });
-        });
         </script>
     </head>
 
@@ -47,7 +56,7 @@
 
         <div class="row">
             <div id="left" class="left-column">          
-                <div id="tri" class="ontology">
+                <div id="onto" class="ontology">
                     ontology view
                 </div>
             </div>

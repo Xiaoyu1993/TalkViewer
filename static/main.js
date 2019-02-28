@@ -141,7 +141,7 @@ Vue.component('product-review', {
 
         <p>
             <label for="rating">Enter text or</label>
-            <select id="example" v-model.number="chooseSen">
+            <select id="example" v-model.number="chooseSent">
                 <option selected disabled>Choose here</option>
                 <option> Nurses are females. </option>
                 <option> Businessman is a person. </option>
@@ -171,18 +171,18 @@ Vue.component('product-review', {
     `,
     data(){
         return {
-            typeSen: null,
-            chooseSen: null,
+            typeSent: null,
+            chooseSent: null,
             errors: []
         }
     },
     methods:{
         onSubmit(){
-            if (this.typeSen || this.chooseSen){
+            if (this.typeSent || this.chooseSent){
                 //create a new object named productReview
-                let inputSen = {
-                    typeSen: this.typeSen,
-                    chooseSen: this.chooseSen,
+                let inputSent = {
+                    typeSent: this.typeSent,
+                    chooseSent: this.chooseSent,
                     name: "",
                     rating: 0,
                     review: "",
@@ -193,8 +193,8 @@ Vue.component('product-review', {
                 this.$emit('review-submitted', inputSen)
 
                 //reset the content of input box
-                this.typeSen = null
-                this.chooseSen = null
+                this.typeSent = null
+                this.chooseSent = null
             }
             else{
                 this.errors.push("Please type or choose a test sentence.")
