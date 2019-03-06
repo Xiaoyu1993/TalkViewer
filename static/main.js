@@ -154,14 +154,19 @@ Vue.component('product-review', {
             <textarea id = "text-input"></textarea>
         </p>
 
-        <!--p>
-            <label>Would you recommend this product?</label>
-            <input type="radio" id="yes" value="yes" v-model="recommend">
-            <label for="yes"> Yes </label>
-            <br>
-            <input type="radio" id="no" value="no" v-model="recommend">
-            <label for="no"> No </label>
-        </p-->
+        <p>
+            <label> Which one is closer to what you mean? </label>
+            <input type="radio" id="option1" value="1" v-model="chooseSent">
+            <label for="option1"> Option1 </label>
+            <input type="radio" id="option2" value="2" v-model="chooseSent">
+            <label for="option2"> Option2 </label>
+            <input type="radio" id="option3" value="3" v-model="chooseSent">
+            <label for="option3"> Option3 </label>
+            <input type="radio" id="option4" value="4" v-model="chooseSent">
+            <label for="option4"> Option4 </label>
+            <input type="radio" id="option5" value="5" v-model="chooseSent">
+            <label for="option5"> Option5 </label>
+        </p>
         
         <p>
             <!--input type="submit" value="Run"-->
