@@ -1,0 +1,11 @@
+*~
+*.pyc
+SPARQLWrapper.egg-info
+build
+dist
+doc
+.idea
+*.iml
+.project
+.pydevproject
+.settings/

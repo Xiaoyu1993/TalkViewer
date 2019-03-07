@@ -151,7 +151,7 @@ Vue.component('product-review', {
 
         <p>
             <label> Sentence </label>
-            <textarea id = "text-input" v-model="typeSen"></textarea>
+            <textarea id = "text-input" v-model="typeSent"></textarea>
         </p>
 
         <p>
