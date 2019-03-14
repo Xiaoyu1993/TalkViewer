@@ -55,7 +55,7 @@ Vue.component('product', {
             </ul>
         </div-->
 
-        <product-review @review-submitted="addReview"></product-review>
+        <input-box @review-submitted="addReview"></input-box>
 
        
     </div>
@@ -124,7 +124,7 @@ Vue.component('product', {
     }
 })
 
-Vue.component('product-review', {
+Vue.component('input-box', {
     template:`
     <form class="input-box" @submit.prevent="onSubmit">
         <p v-if="errors.length">
@@ -138,63 +138,103 @@ Vue.component('product-review', {
             <label for="name">Name:</label>
             <input id="name" v-model="name"> 
         </p-->
-
-        <p>
-            <label for="rating">Enter text or</label>
-            <select id="example" v-model.number="chooseSent">
-                <option selected disabled>Choose here</option>
-                <option> Nurses are females. </option>
-                <option> Businessman is a person. </option>
-                <option> I am a Purdue graduate. </option>
-            </select>
-        </p>
+        
+        <div class="dropdown-menu">
+            <label for="chooseSen">Enter text or</label>
+            <button class="dropDown" type="button" id="chooseSen" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Choose here
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#"> Nurses are females. </a>
+                <a class="dropdown-item" href="#"> Businessman is a person. </a>
+                <a class="dropdown-item" href="#"> I am a Purdue graduate. </a>
+            </div>
+        </div>
 
         <p>
             <label> Sentence </label>
             <textarea id = "text-input" v-model="typeSent"></textarea>
         </p>
-
-        <p>
-            <label> Which one is closer to what you mean? </label>
-            <input type="radio" id="option1" value="1" v-model="chooseSent">
-            <label for="option1"> Option1 </label>
-            <input type="radio" id="option2" value="2" v-model="chooseSent">
-            <label for="option2"> Option2 </label>
-            <input type="radio" id="option3" value="3" v-model="chooseSent">
-            <label for="option3"> Option3 </label>
-            <input type="radio" id="option4" value="4" v-model="chooseSent">
-            <label for="option4"> Option4 </label>
-            <input type="radio" id="option5" value="5" v-model="chooseSent">
-            <label for="option5"> Option5 </label>
-        </p>
         
         <p>
             <button type="submit" class="button" id = "button-submit"> Run </button>
+        </p>
+
+        <p>
+            <label> Which one is closer to what you mean? </label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option0" value="0" checked>
+                <label class="form-check-label" for="option0">
+                    {{candiSent[0]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option1" value="1">
+                <label class="form-check-label" for="option1">
+                    {{candiSent[1]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option2" value="2">
+                <label class="form-check-label" for="option2">
+                    {{candiSent[2]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option3" value="3">
+                <label class="form-check-label" for="option3">
+                    {{candiSent[3]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option4" value="4">
+                <label class="form-check-label" for="option4">
+                    {{candiSent[4]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option5" value="-1">
+                <label class="form-check-label" for="option5">
+                    Nothing seems correct
+                </label>
+            </div>
         </p>
     </form>
     `,
     data(){
         return {
             typeSent: null,
-            chooseSent: null,
+            chooseSent: -2,
+            candiSent: ["0: Business", "1: Businessperson", "2: Business magnate", "3: Petroleum industry", "4: Small business"],
             errors: []
         }
     },
     methods:{
         onSubmit(){
-            if (this.typeSent || this.chooseSent){
+            if (this.typeSent || this.chooseSent>-2){
                 //create a new object named productReview
-                let inputSent = {
-                    typeSent: this.typeSent,
-                    chooseSent: this.chooseSent,
-                    name: "",
-                    rating: 0,
-                    review: "",
-                    recommend: false
+                if(this.typeSent){
+                    let inputSent = {
+                        sentence: this.typeSent,
+                        chooseSent: this.chooseSent,
+                        name: "",
+                        rating: 0,
+                        review: "",
+                        recommend: false
+                    }
+                }else if(this.chooseSent>-2){
+                    let inputSent = {
+                        typeSent: this.typeSent,
+                        chooseSent: this.chooseSent,
+                        name: "",
+                        rating: 0,
+                        review: "",
+                        recommend: false
+                    }
                 }
 
                 // send the productReview to parent object product
-                this.$emit('review-submitted', inputSen)
+                this.$emit('review-submitted', inputSent)
 
                 //reset the content of input box
                 this.typeSent = null
@@ -206,6 +246,130 @@ Vue.component('product-review', {
         }
     }
 })
+
+Vue.component('temp-box', {
+    template:`
+    <form class="input-box" @submit.prevent="onSubmit">
+        <p v-if="errors.length">
+            <b>Please correct the following error(s):</b>
+            <ul>
+                <li v-for="error in errors">{{error}}</li>
+            </ul>
+        </p>
+
+        <!--p>
+            <label for="name">Name:</label>
+            <input id="name" v-model="name"> 
+        </p-->
+        
+        <div class="dropdown-menu">
+            <label for="chooseSen">Enter text or</label>
+            <button class="dropDown" type="button" id="chooseSen" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Choose here
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#"> Nurses are females. </a>
+                <a class="dropdown-item" href="#"> Businessman is a person. </a>
+                <a class="dropdown-item" href="#"> I am a Purdue graduate. </a>
+            </div>
+        </div>
+
+        <p>
+            <label> Sentence </label>
+            <textarea id = "text-input" v-model="typeSent"></textarea>
+        </p>
+        
+        <p>
+            <button type="submit" class="button" id = "button-submit"> Run </button>
+        </p>
+
+        <p>
+            <label> Which one is closer to what you mean? </label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option0" value="0" checked>
+                <label class="form-check-label" for="option0">
+                    {{candiSent[0]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option1" value="1">
+                <label class="form-check-label" for="option1">
+                    {{candiSent[1]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option2" value="2">
+                <label class="form-check-label" for="option2">
+                    {{candiSent[2]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option3" value="3">
+                <label class="form-check-label" for="option3">
+                    {{candiSent[3]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option4" value="4">
+                <label class="form-check-label" for="option4">
+                    {{candiSent[4]}}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option5" value="-1">
+                <label class="form-check-label" for="option5">
+                    Nothing seems correct
+                </label>
+            </div>
+        </p>
+    </form>
+    `,
+    data(){
+        return {
+            typeSent: null,
+            chooseSent: -2,
+            candiSent: ["0: Business", "1: Businessperson", "2: Business magnate", "3: Petroleum industry", "4: Small business"],
+            errors: []
+        }
+    },
+    methods:{
+        onSubmit(){
+            if (this.typeSent || this.chooseSent>-2){
+                //create a new object named productReview
+                if(this.typeSent){
+                    let inputSent = {
+                        sentence: this.typeSent,
+                        chooseSent: this.chooseSent,
+                        name: "",
+                        rating: 0,
+                        review: "",
+                        recommend: false
+                    }
+                }else if(this.chooseSent>-2){
+                    let inputSent = {
+                        typeSent: this.typeSent,
+                        chooseSent: this.chooseSent,
+                        name: "",
+                        rating: 0,
+                        review: "",
+                        recommend: false
+                    }
+                }
+
+                // send the productReview to parent object product
+                this.$emit('review-submitted', inputSent)
+
+                //reset the content of input box
+                this.typeSent = null
+                this.chooseSent = null
+            }
+            else{
+                this.errors.push("Please type or choose a test sentence.")
+            }
+        }
+    }
+})
+
 var app = new Vue({
     el: '#app',   
     data: {

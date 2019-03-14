@@ -31,6 +31,13 @@ body {
     width: 100%;
     
   }
+
+  .dropDown{
+    font-size: 14px;
+    padding: 10px 8px 10px 5px;
+    border-radius: 6px;
+    position: relative;
+  }
   
   .triple{
     width: 100%;
@@ -99,6 +106,7 @@ body {
     height: 40px;
     width: 100px;
     font-size: 14px;
+    border-radius: 6px;
   } 
   
   .disabledButton {

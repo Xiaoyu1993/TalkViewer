@@ -9,8 +9,9 @@ import spacy
 from spacy import displacy
 
 import urllib
-from owlready2 import *
+#from owlready2 import *
 from rdflib import Graph
+from SPARQLWrapper import SPARQLWrapper, JSON
 
 import re
 import xml.etree.ElementTree as ET
@@ -40,7 +41,7 @@ def RemoveStopword1(phrase, doc, chunkStart, chunkEnd, stopList):
             i_stop = i_stop+1
         # there is no stop word in current chunk
         if i_stop >= len(stopList):
-            break;
+            break
         #print(i_sen)
         # finish going through the chunk
         if stopList[i_stop] > chunkEnd-1:
@@ -70,7 +71,7 @@ def RemoveStopword2(inputPhrase):
 
 
 # extract one triple from given sentence
-def ExtractTriple(sen, index=0):
+def ExtractTriple(sen):
     # initialize the triple and stop word list
     subj = ""
     pred = ""
@@ -184,6 +185,15 @@ def FormatURI(phrase, isS_O = False):
     #print('After formatting:  ' + phrase)
     return phrase
 
+# transfer a phrase to a URI form
+def NameURI(url):
+    index_slash = 0
+    for i in range(len(url)-1, -1, -1):
+        if url[i] == '/':
+            index_slash = i+1
+            break
+    return url[index_slash:]
+
 # query the given triple in the ontology with SPARQL
 # return true/false as result
 def QueryTriple(subj, pred, obj):
@@ -224,8 +234,9 @@ def ComponentQuery1(subj, pred, obj):
         SELECT ?pred ?obj WHERE {
           """ + subj + """ ?pred ?obj.
         }"""
-        # print(qSelect_P_O)
-        r1 = m_graph.query(qSelect_P_O) 
+        #r1 = m_graph.query(qSelect_P_O)
+        sparql.setQuery(qSelect_P_O)
+        r1 = sparql.query().convert()
         if r1 != None: # may need one more variable to record source
             r.append(r1)
         
@@ -234,8 +245,9 @@ def ComponentQuery1(subj, pred, obj):
         SELECT ?sub ?obj WHERE {
           ?sub """ + pred + """ ?obj.
         }"""
-        # print(qSelect_S_O)
-        r2 = m_graph.query(qSelect_S_O) 
+        #r2 = m_graph.query(qSelect_S_O) 
+        sparql.setQuery(qSelect_S_O)
+        r2 = sparql.query().convert()
         if r2 != None: # may need one more variable to record source
             r.append(r2)
         
@@ -244,8 +256,9 @@ def ComponentQuery1(subj, pred, obj):
         SELECT ?sub ?pred WHERE {
           ?sub ?pred """ + obj + """.
         }"""
-        # print(qSelect_S_P)
-        r3 = m_graph.query(qSelect_S_P) 
+        #r3 = m_graph.query(qSelect_S_P) 
+        sparql.setQuery(qSelect_S_P)
+        r3 = sparql.query().convert()
         if r3 != None: # may need one more variable to record source
             r.append(r3)
 
@@ -258,7 +271,7 @@ def ComponentQuery2(subj, pred, obj):
     prefix = """
     PREFIX rdf:<http://www.w3.org/2000/01/rdf-schema#>
     PREFIX dbpd:<http://dbpedia.org/ontology/>
-    """
+    """    
     
     r = []
     if pred!=None and obj!=None:
@@ -266,9 +279,10 @@ def ComponentQuery2(subj, pred, obj):
         SELECT ?sub WHERE {
           ?sub """ + pred + """ """ + obj + """.
         }"""
-        #print(qSelect_S)
-        #print("\nFind triple with 2 components: \n" + pred + ' - ' + obj)
-        r1 = m_graph.query(qSelect_S) 
+        
+        #r1 = m_graph.query(qSelect_S) 
+        sparql.setQuery(qSelect_S)
+        r1 = sparql.query().convert()
         if r1 != None: # may need one more variable to record source
             r.append(r1)
         
@@ -277,9 +291,10 @@ def ComponentQuery2(subj, pred, obj):
         SELECT ?pred WHERE {
           """ + subj + """ ?pred """ + obj + """.
         }"""
-        #print(qSelect_P)
-        #print("\nFind triple with 2 components: \n" + subj + ' - ' + obj)
-        r2 = m_graph.query(qSelect_P)
+        
+        #r2 = m_graph.query(qSelect_P)
+        sparql.setQuery(qSelect_P)
+        r2 = sparql.query().convert()
         if r2 != None: # may need one more variable to record source
             r.append(r2)
             
@@ -288,9 +303,10 @@ def ComponentQuery2(subj, pred, obj):
         SELECT ?obj WHERE {
           """ + subj + """ """ + pred + """ ?obj.
         }"""
-        #print(qSelect_O)
-        #print("\nFind triple with 2 components: \n" + subj + ' - ' + pred)
-        r3 = m_graph.query(qSelect_O)
+        
+        #r3 = m_graph.query(qSelect_O)
+        sparql.setQuery(qSelect_O)
+        r3 = sparql.query().convert()
         if r3 != None: # may need one more variable to record source
             r.append(r3)
         
@@ -316,12 +332,15 @@ def ComponentQuery3(subj, pred, obj):
             """ + subj + """ """ + pred + """ """ + obj + """.
         }"""
 
-        r = m_graph.query(qAsk)
+        #r = m_graph.query(qAsk)
+        sparql.setQuery(qAsk)
+        r = sparql.query().convert()
 
         #if not r:
         #    print(qAsk)
         #    print(r)
-        return r.askAnswer
+        
+        return r["boolean"]
 
 def PartialQuery(subj, pred, obj, subjURI, predURI, objURI):
     if subj==None and pred==None and obj==None:
@@ -365,7 +384,7 @@ def PartialQuery(subj, pred, obj, subjURI, predURI, objURI):
                     part_obj = objURI
 
                 r1 = ComponentQuery1(part_subj, part_pred, part_obj)
-                print(r1)
+                #print(r1)
                 if r1 and len(r1)>0:
                     r2 = ComponentQuery2(part_subj, part_pred, part_obj)
                     if r2 and len(r2)>0:
@@ -377,6 +396,7 @@ def PartialQuery(subj, pred, obj, subjURI, predURI, objURI):
                         else:
                             print("\nFind triple with 2 components:")
                             PrintQueryResult(r2)
+                            #print(r2)
                     else:
                         print("\nFind triple with 1 components:")
                         PrintQueryResult(r1)
@@ -390,19 +410,33 @@ def PartialQuery(subj, pred, obj, subjURI, predURI, objURI):
     return len(r1)>0 or len(r2)>0 or r3
 
 def PrintQueryResult(results):
-    for result in results:
-        for var in result.vars:
-            print(var.toPython())
-        for binding in result.bindings:
-            print(binding.toPython())
+    # for sparqlWrapper
+    for group in results:
+        print(group)
+        for result in group["results"]["bindings"]:
+            print('( ', end='')
+            if "sub" in result:
+                print(NameURI(result["sub"]["value"]) + ' - ', end='')
+            else:
+                print('* -', end='')
+            if "pred" in result:
+                print(NameURI(result["pred"]["value"]) + ' - ', end='')
+            else:
+                print('* -', end='')
+            if "obj" in result:
+                print(NameURI(result["obj"]["value"]), end='')
+            else:
+                print('* )\n', end='')
  
 # load Spacy NLP dictionary
 nlp = spacy.load('en_core_web_sm')
 
 # load DBPD ontology and construct graph for query
-m_world = World()# Owlready2 stores every triples in a ‘World’ object
-m_onto = m_world.get_ontology("./server_resource/dbpedia.owl").load()
-m_graph = m_world.as_rdflib_graph()
+#m_world = World()# Owlready2 stores every triples in a ‘World’ object
+#m_onto = m_world.get_ontology("./server_resource/dbpedia.owl").load()
+#m_graph = m_world.as_rdflib_graph()
+sparql = SPARQLWrapper("./server_resource/dbpedia.owl")#http://dbpedia.org/sparql
+sparql.setReturnFormat(JSON)
 
 def main_loop(): 
     # load data
@@ -413,8 +447,8 @@ def main_loop():
     for item in reader:
         #format sentences in item as string
         fullP = "".join(item)
-        splitP = fullP.split(";", 3);
-        splitS = splitP[3][1:len(splitP[3])].split(".");
+        splitP = fullP.split(";", 3)
+        splitS = splitP[3][1:len(splitP[3])].split(".")
         #print(splitS)
         for sen in splitS:
             senSet.append(sen)#store the sentence into an array
