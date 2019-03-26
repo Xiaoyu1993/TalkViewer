@@ -71,7 +71,7 @@ def RemoveStopword2(inputPhrase):
 
 
 # extract one triple from given sentence
-def ExtractTriple(sen):
+def ExtractTriple(sen, index=0):
     # initialize the triple and stop word list
     subj = ""
     pred = ""
@@ -151,20 +151,22 @@ def QueryURI(keywords, index=-2):
     root = ET.fromstring(response)
     result = root.findall(prefix + "Result")
     
+    options = []
     if len(result)>0:
         selected = -1
         count = 0
         for name in result:
-            print(str(count) + ": " + name.find(prefix + "Label").text)
+            options.append(name.find(prefix + "Label").text)
+            print(options[count])
             count += 1
         # for some default input during debugging
-        if index<-1:
+        '''if index<-1:
             index = int(input("Which one is closer to what you mean? (type \"-1\" if nothing seems correct) "))
         if index >= 0:
             selected = "<" + result[index].find(prefix + "URI").text + ">"
         else:
-            selected = None
-        return selected
+            selected = None'''
+        return options
     else:
         print("Sorry, we find nothing for this stuff :(\n")
         return None
@@ -438,7 +440,7 @@ nlp = spacy.load('en_core_web_sm')
 sparql = SPARQLWrapper("./server_resource/dbpedia.owl")#http://dbpedia.org/sparql
 sparql.setReturnFormat(JSON)
 
-def main_loop(): 
+def main_loop(sampleSentence=""): 
     # load data
     file = open("./server_resource/shortdataset.csv", "r")
     #file = open("./server_resource/newdataset_formatted.csv", "r")
@@ -461,7 +463,7 @@ def main_loop():
     # parse and query each sentence
     #for index in range(len(senSet)):
     index = 3
-    sampleSentence = "Nurses are females"
+    #sampleSentence = "Nurses are females"
 
     # extract triple from current sentence
     [subj, pred, obj] = ExtractTriple(sampleSentence)
@@ -488,6 +490,8 @@ def main_loop():
     # look up the URI for subj, pred and obj
     print("\nFor subject \"" + subj + "\":")
     subjURI = QueryURI(subj)
+    return subjURI
+
     print("\nFor predicate \"" + pred + "\":")
     predURI = QueryURI(pred)
     print("\nFor object \"" + obj + "\":")
@@ -519,6 +523,7 @@ def main_loop():
             result = PartialQuery(subj, pred, obj, subjURI, predURI, objURI)
             if not result:
                 print ("Find nothing")
+    return null
 
 # For sever operation
 app = Flask(__name__)
@@ -542,7 +547,9 @@ def process_data():
     print("Input sentence: " + text)
     #iterate = int(text)
     #processed_text = Montecarlo(iterate)
-    return strToJson(text)
+    options = main_loop(text)
+    return json.dumps(options)
+    #return main_loop(text).__dict__
 
 
 if __name__ == '__main__':

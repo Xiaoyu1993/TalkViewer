@@ -37,6 +37,45 @@ $("document").ready(function() {
             alert('Please enter a sentence');
         }
     });
+
+    $('#chooseSen a').on('click', function(){
+        var text = $(this).text()
+        if(text != null){
+            //send data to the server
+            var data = {};
+            data['str'] = text
+            console.log(data)
+            
+            // Flask style post
+            $.post("/request", data, function(data,status){
+                //alert('flask post');
+                index = 0
+                console.log(data[0])
+                $("#tripleResult").text(data);
+            },"json");
+
+            // Ajax style post
+            /*$.ajax({
+                type: 'POST',
+                url: "/request",
+                data: data,
+                dataType: 'json', 
+                success: function(data) { 
+                    //alert('ajax post');
+                    console.log(data);
+                    $("#onto").text(data.sent);
+                },
+                error: function(xhr, type) {
+                    alert(xhr.responseText);
+                    alert(type);
+                }
+            });*/
+
+        }else
+        {
+            alert('Please enter a sentence');
+        }
+    });
 });
 
 Vue.component('product', {
@@ -189,10 +228,10 @@ Vue.component('input-box', {
         
         <div class="dropdown">
             <label for="chooseSen">Enter text or</label>
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="chooseSen" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Choose here
             </button>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <div id="chooseSen" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" href="#"> Nurses are females. </a>
                 <a class="dropdown-item" href="#"> Businessman is a person. </a>
                 <a class="dropdown-item" href="#"> I am a Purdue graduate. </a>
