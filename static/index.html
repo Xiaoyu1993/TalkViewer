@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>NEREx: Named-Entity Relationship Exploration</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<!--
+        			<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		 -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <script src="js/package/jquery.js"></script>
+	    <link rel="stylesheet" href="css/Entity_Graph.css" />
+	    <link rel="stylesheet" href="css/mainview.css" />
+	    <link rel="stylesheet" href="css/Text_Level_View.css" />
+	    <link rel="stylesheet" href="css/Concept_Graph.css" />
+	</head>
+	<body>
+		<!--
+        	
+        -->
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+         <a class="navbar-brand" href="#">NEREx: Named-Entity Relationship Exploration</a>
+       </nav>
+        
+        <div class=" btn-group-toggle" data-toggle="buttons" style="background: #F8F7F9">
+        	   <label class="btn btn-secondary active" id = "TLV">
+             <input type="radio" name='viewchange' value='TLV' checked/>Text-Level View
+           </label>
+           <label class="btn btn-secondary" id="ELV">
+              <input type="radio"  name='viewchange' value='ELV'/>Entity-Level View
+           </label>
+           <label class="btn btn-secondary" id="EG">
+              <input type="radio"  name='viewchange' value='EG'/>Entity Graph
+           </label>
+           <label class="btn btn-secondary" id="SG">
+             <input type="radio"  name='viewchange' value='SG'/>Speaker Graph
+           </label>
+           <label class="btn btn-secondary" id= "CC">
+              <input type="radio"  name='viewchange' value='CC'/>Concept Graph
+           </label>
+           <label class="btn btn-secondary" id="D">           
+             <input type="radio" name='viewchange' value='D'/>Temporal Graph
+           </label>
+        </div>
+		
+    <div class="card card-body main-view" style=" overflow:scroll; width:100%;background: #F8F7F9"></div>
+
+	   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+<!--
+    <script src="js/package/bootstrap.js"></script>
+    <script src="js/package/popper.js"></script>
+    -->	
+    <script src="js/package/d3.min.js"></script>
+    <script src="js/package/d3-tip.js"></script>
+    <script src="js/package/d3-simple-slider.js"></script>
+    <script type="text/javascript" src="js/main.js" ></script>
+     
+	</body>
+</html>

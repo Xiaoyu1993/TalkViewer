@@ -43,39 +43,101 @@ $("document").ready(function() {
         if(text != null){
             //send data to the server
             var data = {};
+            data['type'] = "sent"
             data['str'] = text
             console.log(data)
             
             // Flask style post
-            $.post("/request", data, function(data,status){
+            $.post("/request", data, function(options,status){
                 //alert('flask post');
-                index = 0
-                console.log(data[0])
-                $("#tripleResult").text(data);
-            },"json");
-
-            // Ajax style post
-            /*$.ajax({
-                type: 'POST',
-                url: "/request",
-                data: data,
-                dataType: 'json', 
-                success: function(data) { 
-                    //alert('ajax post');
-                    console.log(data);
-                    $("#onto").text(data.sent);
-                },
-                error: function(xhr, type) {
-                    alert(xhr.responseText);
-                    alert(type);
-                }
-            });*/
-
+                index = 0;
+                data = options[index];
+                selections = []
+                $("#label0").text("0: " + data[0]);
+                $("#label1").text("1: " + data[1]);
+                $("#label2").text("2: " + data[2]);
+                $("#label3").text("3: " + data[3]);
+                $("#label4").text("4: " + data[4]);
+                $('input[name="options"]').click( function() {
+                    if(index < 2){
+                        value = $(this).val();
+                        if(value >= -1 && value <= 4){
+                            selections.push(data[value]);
+                            index += 1;
+                        }else
+                        {
+                            alert('Please select a word/phrase');
+                        }
+                    
+                        data = options[index];
+                        $("#label0").text("0: " + data[0]);
+                        $("#label1").text("1: " + data[1]);
+                        $("#label2").text("2: " + data[2]);
+                        $("#label3").text("3: " + data[3]);
+                        $("#label4").text("4: " + data[4]);
+                        
+                    }else{
+                        value = $(this).val();
+                        if(value >= -1 && value <= 4){
+                            selections.push(data[value]);
+                            index += 1;
+                        }else
+                        {
+                            alert('Please select a word/phrase');
+                        }
+                        //console.log(selections)
+                        data = {};
+                        data['type'] = "select"
+                        data['str'] = JSON.stringify(selections)
+                        console.log(data)
+            
+                        // Flask style post
+                        $.post("/request", data, function(data,status){
+                            alert('flask post');
+                            //$("#tripleResult").text(data.sent);
+                        },"json");
+                    }
+                });
+                //});
+                /*$("#tripleResult").text(data);
+                $("#label0").text("0: " + data[0]);
+                $("#label1").text("1: " + data[1]);
+                $("#label2").text("2: " + data[2]);
+                $("#label3").text("3: " + data[3]);
+                $("#label4").text("4: " + data[4]);*/
+            },"json");   
         }else
         {
             alert('Please enter a sentence');
         }
     });
+
+    /*$('input[name="options"]').change( function() {
+        value = $(this).val();
+        if(value >= -1 && value <= 4){
+            //send data to the server
+            var data = {};
+            data['type'] = "select"
+            data['int'] = value.toString()
+            console.log(data)
+            
+            // Flask style post
+            $.post("/request", data, function(data,status){
+                alert('flask post');
+                /*index = 0
+                $("#tripleResult").text(data);
+                $("#label0").text("0: " + data[0]);
+                $("#label1").text("1: " + data[1]);
+                $("#label2").text("2: " + data[2]);
+                $("#label3").text("3: " + data[3]);
+                $("#label4").text("4: " + data[4]);
+            },"json");
+
+        }else
+        {
+            alert('Please select a word/phrase');
+        }
+    });*/
 });
 
 Vue.component('product', {
@@ -250,37 +312,37 @@ Vue.component('input-box', {
         <p>
             <label> Which one is closer to what you mean? </label>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option0" value="0" checked>
-                <label class="form-check-label" for="option0">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option0" value="0" checked>
+                <label id="label0" class="form-check-label" for="option0">
                     {{candiSent[0]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option1" value="1">
-                <label class="form-check-label" for="option1">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option1" value="1">
+                <label id="label1" class="form-check-label" for="option1">
                     {{candiSent[1]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option2" value="2">
-                <label class="form-check-label" for="option2">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option2" value="2">
+                <label id="label2" class="form-check-label" for="option2">
                     {{candiSent[2]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option3" value="3">
-                <label class="form-check-label" for="option3">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option3" value="3">
+                <label id="label3" class="form-check-label" for="option3">
                     {{candiSent[3]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option4" value="4">
-                <label class="form-check-label" for="option4">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option4" value="4">
+                <label id="label4" class="form-check-label" for="option4">
                     {{candiSent[4]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="exampleRadios" id="option5" value="-1">
+                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option5" value="-1">
                 <label class="form-check-label" for="option5">
                     Nothing seems correct
                 </label>

@@ -16,8 +16,8 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 import re
 import xml.etree.ElementTree as ET
 
-from allennlp.common.testing import AllenNlpTestCase
-from allennlp.predictors.predictor import Predictor
+#from allennlp.common.testing import AllenNlpTestCase
+#from allennlp.predictors.predictor import Predictor
 
 # pre-processing
 def PreProcess(senSet):
@@ -333,7 +333,7 @@ def ComponentQuery3(subj, pred, obj):
         ASK {
             """ + subj + """ """ + pred + """ """ + obj + """.
         }"""
-
+        print(qAsk)
         #r = m_graph.query(qAsk)
         sparql.setQuery(qAsk)
         r = sparql.query().convert()
@@ -488,20 +488,27 @@ def main_loop(sampleSentence=""):
     #obj = "person"
 
     # look up the URI for subj, pred and obj
+    options = []
     print("\nFor subject \"" + subj + "\":")
     subjURI = QueryURI(subj)
-    return subjURI
+    options.append(subjURI)
 
     print("\nFor predicate \"" + pred + "\":")
     predURI = QueryURI(pred)
+    options.append(predURI)
+
     print("\nFor object \"" + obj + "\":")
     objURI = QueryURI(obj)
+    options.append(objURI)
 
+    return options
+
+def main_loop2(subjURI, predURI, objURI): 
     try:
         print("\n")
-        print("subject: " + subjURI[1:len(subjURI)-1])
-        print("predicate: " + predURI[1:len(predURI)-1])
-        print("object: " + objURI[1:len(objURI)-1])
+        print("subject: " + subjURI[0:len(subjURI)])
+        print("predicate: " + predURI[0:len(predURI)])
+        print("object: " + objURI[0:len(objURI)])
     except:
         print("none")
         
@@ -513,17 +520,19 @@ def main_loop(sampleSentence=""):
     r3 = ComponentQuery3(subjURI, predURI, objURI)
     if r3:
         print("\nFind origin component:")
-        print(subj + ' - ' + pred + ' - ' + obj)
+        PrintQueryResult(r3)
+        #print(subj + ' - ' + pred + ' - ' + obj)
     else:
         r2 = ComponentQuery2(subjURI, predURI, objURI)
         if r2 and len(r2)>0:
             print("\nFind 2 components:")
             PrintQueryResult(r2)
         else:
-            result = PartialQuery(subj, pred, obj, subjURI, predURI, objURI)
+            #result = PartialQuery(subj, pred, obj, subjURI, predURI, objURI)
+            result = None
             if not result:
                 print ("Find nothing")
-    return null
+    return None
 
 # For sever operation
 app = Flask(__name__)
@@ -543,13 +552,23 @@ def my_form():
 
 @app.route('/request', methods=['POST',"GET"])
 def process_data():
-    text = request.form.get("str")
-    print("Input sentence: " + text)
-    #iterate = int(text)
-    #processed_text = Montecarlo(iterate)
-    options = main_loop(text)
-    return json.dumps(options)
-    #return main_loop(text).__dict__
+    dataType = request.form.get("type")
+
+    if dataType == "sent":
+        text = request.form.get("str")
+        print("Input sentence: " + text)
+        #iterate = int(text)
+        #processed_text = Montecarlo(iterate)
+        options = main_loop(text)
+        print(options)
+        return json.dumps(options)
+    elif dataType == "select":
+        select = json.loads(request.form.get("str"))
+        print(select)
+        main_loop2(select[0], select[1], select[2])
+        return "test"
+
+
 
 
 if __name__ == '__main__':

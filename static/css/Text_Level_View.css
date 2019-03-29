@@ -1,0 +1,43 @@
+span {
+  background-color: #f18973;
+}
+
+.Person {
+  background-color: #D48B43;
+}
+
+.Measure {
+  background-color: #CE5391;
+}
+
+.Geo {
+  background-color: #70C692;
+}
+
+.Unit {
+  background-color: #F8D655;
+}
+
+.Time {
+  background-color: #AAACA3;
+}
+
+.Organization {
+  background-color: #7FD2DF;
+}
+
+.Context {
+  background-color: #808CD5;
+}
+
+.Positive {
+  background-color: #A1B04C;
+}
+
+.Negative {
+  background-color: #DF7A72;
+}
+
+.Politeness {
+  background-color: #AC8E77;
+}

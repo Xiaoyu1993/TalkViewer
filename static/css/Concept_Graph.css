@@ -1,0 +1,21 @@
+#select-topic{
+	float:left;
+	width:20%;
+	position:absolute;
+}
+
+#Concept-Graph-Container{
+	float:left;
+	width:60%;
+	position:absolute;
+	left:20%;
+	height:600px;
+}
+
+.solid{
+   stroke:solid;
+}
+
+.dashed{
+   stroke-dasharray: 5,5; 
+}
