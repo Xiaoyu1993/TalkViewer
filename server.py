@@ -156,7 +156,7 @@ def QueryURI(keywords, index=-2):
         selected = -1
         count = 0
         for name in result:
-            options.append(name.find(prefix + "Label").text)
+            options.append("<" + name.find(prefix + "URI").text + ">")
             print(options[count])
             count += 1
         # for some default input during debugging
@@ -333,7 +333,6 @@ def ComponentQuery3(subj, pred, obj):
         ASK {
             """ + subj + """ """ + pred + """ """ + obj + """.
         }"""
-        print(qAsk)
         #r = m_graph.query(qAsk)
         sparql.setQuery(qAsk)
         r = sparql.query().convert()
@@ -429,6 +428,29 @@ def PrintQueryResult(results):
                 print(NameURI(result["obj"]["value"]), end='')
             else:
                 print('* )\n', end='')
+
+def GetQueryResult(results):
+    # for sparqlWrapper
+    return results
+    queryResult = ''
+    for group in results:
+        print(group)
+        for result in group["results"]["bindings"]:
+            queryResult += '( '
+            if "sub" in result:
+                queryResult += NameURI(result["sub"]["value"]) + ' - '
+            else:
+                queryResult += '* -'
+            if "pred" in result:
+                queryResult += NameURI(result["pred"]["value"]) + ' - '
+            else:
+                queryResult += '* -'
+            if "obj" in result:
+                queryResult += NameURI(result["obj"]["value"])
+            else:
+                queryResult += '* )'
+    print(queryResult)
+    return queryResult
  
 # load Spacy NLP dictionary
 nlp = spacy.load('en_core_web_sm')
@@ -437,7 +459,8 @@ nlp = spacy.load('en_core_web_sm')
 #m_world = World()# Owlready2 stores every triples in a ‘World’ object
 #m_onto = m_world.get_ontology("./server_resource/dbpedia.owl").load()
 #m_graph = m_world.as_rdflib_graph()
-sparql = SPARQLWrapper("./server_resource/dbpedia.owl")#http://dbpedia.org/sparql
+#sparql = SPARQLWrapper("./server_resource/dbpedia.owl")#http://dbpedia.org/sparql
+sparql = SPARQLWrapper("http://dbpedia.org/sparql")
 sparql.setReturnFormat(JSON)
 
 def main_loop(sampleSentence=""): 
@@ -491,15 +514,24 @@ def main_loop(sampleSentence=""):
     options = []
     print("\nFor subject \"" + subj + "\":")
     subjURI = QueryURI(subj)
-    options.append(subjURI)
+    if subjURI != None:
+        options.append(subjURI)
+    else:
+        options.append([])
 
     print("\nFor predicate \"" + pred + "\":")
     predURI = QueryURI(pred)
-    options.append(predURI)
+    if predURI != None:
+        options.append(predURI)
+    else:
+        options.append([])
 
     print("\nFor object \"" + obj + "\":")
     objURI = QueryURI(obj)
-    options.append(objURI)
+    if objURI != None:
+        options.append(objURI)
+    else:
+        options.append([])
 
     return options
 
@@ -520,19 +552,19 @@ def main_loop2(subjURI, predURI, objURI):
     r3 = ComponentQuery3(subjURI, predURI, objURI)
     if r3:
         print("\nFind origin component:")
-        PrintQueryResult(r3)
+        result = GetQueryResult(r3)
         #print(subj + ' - ' + pred + ' - ' + obj)
     else:
         r2 = ComponentQuery2(subjURI, predURI, objURI)
         if r2 and len(r2)>0:
             print("\nFind 2 components:")
-            PrintQueryResult(r2)
+            result = GetQueryResult(r2)
         else:
             #result = PartialQuery(subj, pred, obj, subjURI, predURI, objURI)
-            result = None
+            result = "Find nothing"
             if not result:
                 print ("Find nothing")
-    return None
+    return result
 
 # For sever operation
 app = Flask(__name__)
@@ -564,9 +596,9 @@ def process_data():
         return json.dumps(options)
     elif dataType == "select":
         select = json.loads(request.form.get("str"))
-        print(select)
-        main_loop2(select[0], select[1], select[2])
-        return "test"
+        result = main_loop2(select[0], select[1], select[2])
+        print(result)
+        return json.dumps(result)
 
 
 

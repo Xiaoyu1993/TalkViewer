@@ -50,18 +50,21 @@ $("document").ready(function() {
             // Flask style post
             $.post("/request", data, function(options,status){
                 //alert('flask post');
+                console.log(options)
                 index = 0;
                 data = options[index];
+                console.log(data)
                 selections = []
-                $("#label0").text("0: " + data[0]);
-                $("#label1").text("1: " + data[1]);
-                $("#label2").text("2: " + data[2]);
-                $("#label3").text("3: " + data[3]);
-                $("#label4").text("4: " + data[4]);
+                $("#label0").text("0: " + data[0].slice(29,-1));
+                $("#label1").text("1: " + data[1].slice(29,-1));
+                $("#label2").text("2: " + data[2].slice(29,-1));
+                $("#label3").text("3: " + data[3].slice(29,-1));
+                $("#label4").text("4: " + data[4].slice(29,-1));
                 $('input[name="options"]').click( function() {
                     if(index < 2){
                         value = $(this).val();
                         if(value >= -1 && value <= 4){
+                            console.log("place 1")
                             selections.push(data[value]);
                             index += 1;
                         }else
@@ -70,14 +73,21 @@ $("document").ready(function() {
                         }
                     
                         data = options[index];
-                        $("#label0").text("0: " + data[0]);
-                        $("#label1").text("1: " + data[1]);
-                        $("#label2").text("2: " + data[2]);
-                        $("#label3").text("3: " + data[3]);
-                        $("#label4").text("4: " + data[4]);
+                        console.log(data)
+                        if(data.length > 0){
+                            console.log("place 2")
+                            $("#label0").text("0: " + data[0].slice(29,-1));
+                            $("#label1").text("1: " + data[1].slice(29,-1));
+                            $("#label2").text("2: " + data[2].slice(29,-1));
+                            $("#label3").text("3: " + data[3].slice(29,-1));
+                            $("#label4").text("4: " + data[4].slice(29,-1));
+                        }else{
+                            index += 1;
+                        }
                         
                     }else{
                         value = $(this).val();
+                        console.log("place 3")
                         if(value >= -1 && value <= 4){
                             selections.push(data[value]);
                             index += 1;
@@ -92,9 +102,10 @@ $("document").ready(function() {
                         console.log(data)
             
                         // Flask style post
-                        $.post("/request", data, function(data,status){
-                            alert('flask post');
-                            //$("#tripleResult").text(data.sent);
+                        $.post("/request", data, function(result,status){
+                            //alert('flask post');
+                            console.log(result)
+                            $("#tripleResult").text(JSON.stringify(result));
                         },"json");
                     }
                 });
