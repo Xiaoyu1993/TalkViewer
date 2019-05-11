@@ -2,137 +2,175 @@ body {
     font-family: tahoma;
     color: #282828;
     margin: 0px;
-  }
-  
-  .nav-bar {
-    background: linear-gradient(-90deg, #84CF6A, #16C0B0);
-    height: 60px;
-    margin-bottom: 15px;
-    vertical-align: middle;
-  }
+}
 
-  .title {
-    margin-bottom: 15px;
-    vertical-align: middle;
-  }
+.nav-bar {
+  background: linear-gradient(-90deg, #84CF6A, #16C0B0);
+  height: 60px;
+  margin-bottom: 15px;
+  vertical-align: middle;
+}
 
-  .ontology{
-    display: flex;
-    height: 25%;
+.title {
+  margin-bottom: 15px;
+  vertical-align: middle;
+}
 
-  }
+.ontology{
+  display: flex;
+  height: 25%;
 
-  .input {
-    width: 100%;
-  }
-  
-  .input-box{
-    width: 100%;
-    
-  }
+}
 
-  .dropDown{
-    font-size: 14px;
-    padding: 10px 8px 10px 5px;
-    border-radius: 6px;
-    position: relative;
-  }
-  
-  .triple{
-    width: 100%;
-    height: 45%; 
-  }
+.input {
+  width: 100%;
+}
 
-  .left-column {
-    float: left;
-    width: 65%;
-    height: 90%;
-    padding: 20px 20px 20px 20px;
-    margin: 0px 10px 20px 20px;
-    border: 1px solid #d8d8d8; 
-  }
+.input-box{
+  width: 100%;
+  
+}
 
-  .right-column {
-    float: right;
-    width: 28%;
-    height: 90%;
-    padding: 20px 20px 20px 20px;
-    margin: 0px 20px 20px 10px;
-    border: 1px solid #d8d8d8; 
-  }
-  
-  /* Clear floats after the columns */
-  .row:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
+.dropDown{
+  font-size: 14px;
+  padding: 10px 8px 10px 5px;
+  border-radius: 6px;
+  position: relative;
+}
 
-  img {
-    border: 1px solid #d8d8d8;
-    width: 70%;
-    margin: 40px;
-    box-shadow: 0px .5px 1px #d8d8d8;
-  }
-  
-  .product-image {
-    flex-basis: 700px;
-  }
-  
-  .product-info {
-    margin-top: 10px;
-    flex-basis: 500px;
-  }
-  
-  .color-box {
-    width: 40px;
-    height: 40px;
-    margin-top: 5px;
-  }
-  
-  .cart {
-    margin-right: 25px;
-    float: right;
-    border: 1px solid #d8d8d8;
-    padding: 5px 20px;
-  }
-  
-  .button {
-    margin-top: 5px;
-    border: none;
-    background-color: #16C0B0;
-    color: white;
-    height: 40px;
-    width: 100px;
-    font-size: 16px;
-    border-radius: 5px;
-  } 
-  
-  .disabledButton {
-    background-color: #d8d8d8;
-  }
-  
-  input {
-    width: 100%;  
-    height: 25px;
-    margin-bottom: 20px;
-  }
-  
-  textarea {
-    width: 100%;
-    height: 60px;
-  }
+.triple{
+  width: 100%;
+  height: 45%; 
+}
 
-  .outOfStock{
-    text-decoration: line-through;
-  }
+.left-column {
+  float: left;
+  width: 40%;
+  height: 90%;
+  padding: 20px 20px 20px 20px;
+  margin: 0px 10px 20px 20px;
+  border: 1px solid #d8d8d8; 
+}
 
-  .links line {
-    stroke: #666;
-    stroke-opacity: 0.6;
-  }
+.middle-column {
+  float: left;
+  width: 40%;
+  height: 90%;
+  padding: 20px 20px 20px 20px;
+  margin: 0px 10px 20px 20px;
+  border: 1px solid #d8d8d8; 
+}
 
-  .nodes circle{
-    stroke: #16C0B0;
-    stroke-width: 1.5px;
-  }
+.right-column {
+  float: right;
+  width: 15%;
+  height: 90%;
+  padding: 20px 20px 20px 20px;
+  margin: 0px 20px 20px 10px;
+  border: 1px solid #d8d8d8; 
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+img {
+  border: 1px solid #d8d8d8;
+  width: 70%;
+  margin: 40px;
+  box-shadow: 0px .5px 1px #d8d8d8;
+}
+
+.product-image {
+  flex-basis: 700px;
+}
+
+.product-info {
+  margin-top: 10px;
+  flex-basis: 500px;
+}
+
+.color-box {
+  width: 40px;
+  height: 40px;
+  margin-top: 5px;
+}
+
+.cart {
+  margin-right: 25px;
+  float: right;
+  border: 1px solid #d8d8d8;
+  padding: 5px 20px;
+}
+
+.button {
+  margin-top: 5px;
+  border: none;
+  background-color: #16C0B0;
+  color: white;
+  height: 40px;
+  width: 100px;
+  font-size: 16px;
+  border-radius: 5px;
+} 
+
+.disabledButton {
+  background-color: #d8d8d8;
+}
+
+input {
+  width: 100%;  
+  height: 25px;
+  margin-bottom: 20px;
+}
+
+textarea {
+  width: 100%;
+  height: 60px;
+}
+
+.outOfStock{
+  text-decoration: line-through;
+}
+
+.links line {
+  stroke: #666;
+  stroke-opacity: 0.6;
+}
+
+.nodes circle{
+  stroke: #16C0B0;
+  stroke-width: 1.5px;
+}
+
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  fill: #fff;
+  stroke: #16C0B0;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font: 12px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+
+path {
+  stroke: #fff;
+}
+
+iframe {
+  width: "100%";
+  height: "1000px";
+}

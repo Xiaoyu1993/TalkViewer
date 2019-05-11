@@ -1,0 +1,66 @@
+{
+  "name": "GroundRoot",
+  "children": [
+    {
+      "name": "<http://www.w3.org/2002/07/owl#Thing>",
+      "children": [
+        {
+          "name": "<http://dbpedia.org/ontology/Place>",
+          "children": [
+            {
+              "name": "<http://dbpedia.org/resource/Forest>"
+            },
+            {
+              "name": "<http://dbpedia.org/ontology/PopulatedPlace>",
+              "children": [
+                {
+                  "name": "<http://dbpedia.org/ontology/Settlement>",
+                  "children": [
+                    {
+                      "name": "<http://dbpedia.org/resource/Overlook>"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "<http://dbpedia.org/resource/Campus>"
+        },
+        {
+          "name": "<http://dbpedia.org/ontology/Species>",
+          "children": [
+            {
+              "name": "<http://dbpedia.org/ontology/Eukaryote>",
+              "children": [
+                {
+                  "name": "<http://dbpedia.org/ontology/Plant>",
+                  "children": [
+                    {
+                      "name": "<http://dbpedia.org/resource/Tree>"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "<http://dbpedia.org/resource/Volumetric_flow_rate>"
+        },
+        {
+          "name": "<http://dbpedia.org/ontology/ChemicalSubstance>",
+          "children": [
+            {
+              "name": "<http://dbpedia.org/resource/Solution>"
+            }
+          ]
+        },
+        {
+          "name": "<http://dbpedia.org/resource/Cliff>"
+        }
+      ]
+    }
+  ]
+}

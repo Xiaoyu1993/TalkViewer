@@ -3,10 +3,19 @@ import random as r
 import math as m
 import json
 
+# export SLACK_BOT_TOKEN='xoxb-602325181223-616519967379-gJSi7r5W3ekXrVKEgvBz4gWJ'
+
+import os
+import time
+import re
+from slackclient import SlackClient
+
 import csv
 import re
 import spacy
 from spacy import displacy
+from spacy.pipeline import EntityRecognizer
+import json
 
 import urllib
 #from owlready2 import *
@@ -16,8 +25,8 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 import re
 import xml.etree.ElementTree as ET
 
-#from allennlp.common.testing import AllenNlpTestCase
-#from allennlp.predictors.predictor import Predictor
+from allennlp.common.testing import AllenNlpTestCase
+from allennlp.predictors.predictor import Predictor
 
 # pre-processing
 def PreProcess(senSet):
@@ -30,112 +39,6 @@ def PreProcess(senSet):
             s = senSet[index][i_start:i_end+2]
             senSet[index] = senSet[index].replace(s, "")
             
-# stopwords from parsing the whole sentence
-def RemoveStopword1(phrase, doc, chunkStart, chunkEnd, stopList):
-    result = phrase
-    i_stop=0
-    #start = chunk.start# to eliminate the condition when the first word of chunk is stop word
-    for i_sen in range(chunkStart, chunkEnd):
-        while i_stop < len(stopList) and stopList[i_stop] < i_sen-1:
-            #print(str(stopList[i_stop]) + ' ' + str(i_sen))
-            i_stop = i_stop+1
-        # there is no stop word in current chunk
-        if i_stop >= len(stopList):
-            break
-        #print(i_sen)
-        # finish going through the chunk
-        if stopList[i_stop] > chunkEnd-1:
-            break
-        # find the stop word and remove it
-        if stopList[i_stop] == i_sen-1:
-            #print(doc[i_sen-1])
-            if i_sen-1 == chunkStart:
-                result = result.replace(doc[i_sen-1].text + ' ', '')
-                chunkStart = chunkStart+1
-            else:
-                result = result.replace(' ' + doc[i_sen-1].text, '')
-    return result
-
-# stopwords from parsing triple separately
-def RemoveStopword2(inputPhrase):
-    result = ''
-    doc_phrase = nlp(str(inputPhrase))
-    for token in doc_phrase:
-        #print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
-        #       token.shape_, token.is_alpha, token.is_stop)
-        if not token.is_stop:
-            result = result + token.text + ' '
-        #else:
-        #    print(token.text + ', ', end = '')    
-    return result
-
-
-# extract one triple from given sentence
-def ExtractTriple(sen, index=0):
-    # initialize the triple and stop word list
-    subj = ""
-    pred = ""
-    obj = ""
-    stopList = []
-    
-    # parse sentence
-    doc = nlp(str(sen))
-    print('\n' + str(index) + '. Original Sentence:\n' + sen)
-    
-    ## visualize the semantic tree
-    #options = {'compact': True, 'color': 'blue'}
-    #displacy.serve(doc, style='dep', options=options)
-    #displacy.serve(doc, style='dep')
-
-    print('\nStopwords:')
-    for token in doc:
-        #print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
-        #      token.shape_, token.is_alpha, token.is_stop)
-
-        # record the index of stop words
-        if token.is_stop:
-            print(token.text + ', ', end='')
-            stopList.append(token.i)
-        if re.match('nsubj', token.dep_):   
-            subj = token.text
-        if re.match('ROOT', token.dep_): 
-            pred = token.lemma_
-            pred_orig = token.text
-        if re.match('dobj', token.dep_): 
-            obj = token.text
-            '''#an earlier solution that I find not necessary
-            obj = token.lemma_
-            # to avoid cases like "-PRON-"
-            if obj[0] == '-':
-                obj = token.text'''
-    print('\n')
-
-    subj_1 = subj
-    obj_1 = obj
-    # using chunk to update subject and object
-    for chunk in doc.noun_chunks:
-        if chunk.root.head.text == pred_orig and re.match('nsubj', chunk.root.dep_):
-            subj = chunk.text
-            # remove stop words
-            subj_1 = RemoveStopword1(subj, doc, chunk.start, chunk.end, stopList)
-
-        if chunk.root.head.text == pred_orig and re.match('dobj|attr', chunk.root.dep_):
-            obj = chunk.text
-            # remove stop words
-            obj_1 = RemoveStopword1(obj, doc, chunk.start, chunk.end, stopList)
-        #print(chunk.text + ' ' + str(chunk.start))
-        #print(chunk.text, chunk.root.text, chunk.root.dep_, chunk.root.head.text)
-
-    #print('Before : ' + subj + ' - ' + pred + ' - ' + obj)
-    #print('Method1: ' + subj_1 + ' - ' + pred + ' - ' + obj_1)
-
-    # second method to remove stop words
-    subj_2 = RemoveStopword2(subj)
-    obj_2 = RemoveStopword2(obj)
-    #print('Method2: ' + subj_2 + '- ' + pred + ' - ' + obj_2 + '\n')
-
-    return [subj, pred, obj]
-
 def QueryURI(keywords, index=-2):
     localSite = 'http://localhost:1111/api/search/KeywordSearch?'
     onlineSite = 'http://lookup.dbpedia.org/api/search/KeywordSearch?'
@@ -151,420 +54,246 @@ def QueryURI(keywords, index=-2):
     root = ET.fromstring(response)
     result = root.findall(prefix + "Result")
     
-    options = []
     if len(result)>0:
         selected = -1
         count = 0
         for name in result:
-            options.append("<" + name.find(prefix + "URI").text + ">")
-            print(options[count])
+            print(str(count) + ": " + name.find(prefix + "Label").text)
             count += 1
         # for some default input during debugging
-        '''if index<-1:
+        if index<-1:
             index = int(input("Which one is closer to what you mean? (type \"-1\" if nothing seems correct) "))
         if index >= 0:
             selected = "<" + result[index].find(prefix + "URI").text + ">"
         else:
-            selected = None'''
-        return options
+            selected = None
+        return selected
     else:
         print("Sorry, we find nothing for this stuff :(\n")
-        return None
-
-# transfer a phrase to a URI form
-def FormatURI(phrase, isS_O = False):
-    #print('Before formatting:  ' + phrase)
-    chars = list(phrase)
+        
+# given a URI, query the ontology iteratively to get its path to root
+def QueryHierarchy(URI):
+    path = []
+    path.insert(0, URI)
     
-    if len(chars) > 0 and not isS_O:
-        chars[0] = chars[0].upper()
-    for i in range(len(chars)):
-        if chars[i] == ' ' and i+1 < len(chars):
-            chars[i+1] = chars[i+1].upper()
-    phrase = ''.join(chars)
-    phrase = phrase.replace(' ', '')
-    phrase = re.sub(r'[^a-zA-Z0-9\s]', '', phrase)
-    #print('After formatting:  ' + phrase)
-    return phrase
-
-# transfer a phrase to a URI form
-def NameURI(url):
-    index_slash = 0
-    for i in range(len(url)-1, -1, -1):
-        if url[i] == '/':
-            index_slash = i+1
-            break
-    return url[index_slash:]
-
-# query the given triple in the ontology with SPARQL
-# return true/false as result
-def QueryTriple(subj, pred, obj):
-    if subj==None or pred==None or obj==None:
-        return None
-    else:
-        prefix = """
-        PREFIX rdf:<http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX dbpd:<http://dbpedia.org/ontology/>
+    sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+    curURI = URI
+    predicate = "rdf:type"
+    endFlag = False # to mark whether a dbo:entity is found in current level
+    
+    while not endFlag:
+        endFlag = True;
+        
+        qSelect = """
+            SELECT ?type WHERE 
+            {
+            """ + curURI + predicate + """ ?type.
+            }
         """
-        #subj = "provinceLink"
-        #pred = "range"
-        #obj = "Province"
-        qSelect = prefix + """
-        SELECT ?sub WHERE {
-          ?sub rdf:""" + FormatURI(pred) + """ dbpd:""" + FormatURI(obj) + """.
-        }"""
-        qAsk = prefix + """
-        ASK {
-            dbpd:""" + FormatURI(subj) + """ rdf:""" + FormatURI(pred) + """ dbpd:""" + FormatURI(obj) + """.
-        }"""
 
-        r = list(m_graph.query(qAsk))
-        return r
+        sparql.setQuery(qSelect)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
 
-def ComponentQuery1(subj, pred, obj):
-    prefix = """
-    PREFIX rdf:<http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX dbpd:<http://dbpedia.org/ontology/>
-    """
-    #subj = "provinceLink"
-    #pred = "range"
-    #obj = "province"
-    
-    r = []
-    if subj!=None:
-        qSelect_P_O = prefix + """
-        SELECT ?pred ?obj WHERE {
-          """ + subj + """ ?pred ?obj.
-        }"""
-        #r1 = m_graph.query(qSelect_P_O)
-        sparql.setQuery(qSelect_P_O)
-        r1 = sparql.query().convert()
-        if r1 != None: # may need one more variable to record source
-            r.append(r1)
-        
-    if pred!=None:
-        qSelect_S_O = prefix + """
-        SELECT ?sub ?obj WHERE {
-          ?sub """ + pred + """ ?obj.
-        }"""
-        #r2 = m_graph.query(qSelect_S_O) 
-        sparql.setQuery(qSelect_S_O)
-        r2 = sparql.query().convert()
-        if r2 != None: # may need one more variable to record source
-            r.append(r2)
-        
-    if obj!=None:
-        qSelect_S_P = prefix + """
-        SELECT ?sub ?pred WHERE {
-          ?sub ?pred """ + obj + """.
-        }"""
-        #r3 = m_graph.query(qSelect_S_P) 
-        sparql.setQuery(qSelect_S_P)
-        r3 = sparql.query().convert()
-        if r3 != None: # may need one more variable to record source
-            r.append(r3)
-
-    #if r!=[]:
-    #    print(r)
-    PrintQueryResult(r)
-    return r
-
-def ComponentQuery2(subj, pred, obj):
-    prefix = """
-    PREFIX rdf:<http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX dbpd:<http://dbpedia.org/ontology/>
-    """    
-    
-    r = []
-    if pred!=None and obj!=None:
-        qSelect_S = prefix + """
-        SELECT ?sub WHERE {
-          ?sub """ + pred + """ """ + obj + """.
-        }"""
-        
-        #r1 = m_graph.query(qSelect_S) 
-        sparql.setQuery(qSelect_S)
-        r1 = sparql.query().convert()
-        if r1 != None: # may need one more variable to record source
-            r.append(r1)
-        
-    if subj!=None and obj!=None:
-        qSelect_P = prefix + """
-        SELECT ?pred WHERE {
-          """ + subj + """ ?pred """ + obj + """.
-        }"""
-        
-        #r2 = m_graph.query(qSelect_P)
-        sparql.setQuery(qSelect_P)
-        r2 = sparql.query().convert()
-        if r2 != None: # may need one more variable to record source
-            r.append(r2)
+        for result in results["results"]["bindings"]:
+            resultURI = '<' + result["type"]["value"] + '>'
+            # begin the class part
+            if "owl#Class" in resultURI:
+                endFlag = False;
+                predicate = "rdfs:subClassOf"
+                break;
+            # insert the first found dbo:entity into the path
+            elif "http://dbpedia.org/ontology" in resultURI:
+                endFlag = False;
+                curURI = resultURI
+                path.insert(0, resultURI)
+                break;
+     
+    # insert the common root node to current path
+    path.insert(0, '<http://www.w3.org/2002/07/owl#Thing>')
+    return path
             
-    if subj!=None and pred!=None:
-        qSelect_O = prefix + """
-        SELECT ?obj WHERE {
-          """ + subj + """ """ + pred + """ ?obj.
-        }"""
+# get ontology hierarchy for every keyword and append the knowledge tree
+def AppendTree(URIList, treeDict):
+    for URI in URIList:
+        hierarchy = QueryHierarchy(URI);
+        #print(hierarchy)
         
-        #r3 = m_graph.query(qSelect_O)
-        sparql.setQuery(qSelect_O)
-        r3 = sparql.query().convert()
-        if r3 != None: # may need one more variable to record source
-            r.append(r3)
-        
-    #if r!=[]:
-    #    print(r)
-    #PrintQueryResult(r)
-    return r
-
-def ComponentQuery3(subj, pred, obj):
-    if subj==None or pred==None or obj==None:
-        return None
-    else:
-        prefix = """
-        PREFIX rdf:<http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX dbpd:<http://dbpedia.org/ontology/>
-        """
-        #subj = "provinceLink"
-        #pred = "range"
-        #obj = "province"
-
-        qAsk = prefix + """
-        ASK {
-            """ + subj + """ """ + pred + """ """ + obj + """.
-        }"""
-        #r = m_graph.query(qAsk)
-        sparql.setQuery(qAsk)
-        r = sparql.query().convert()
-
-        #if not r:
-        #    print(qAsk)
-        #    print(r)
-        
-        return r["boolean"]
-
-def PartialQuery(subj, pred, obj, subjURI, predURI, objURI):
-    if subj==None and pred==None and obj==None:
-        return None
+        curDict = treeDict;
+        for curKey in hierarchy:
+            if curKey in curDict:
+                curDict = curDict[curKey]
+            else:
+                curDict[curKey] = dict()
+                curDict = curDict[curKey]
     
-    print("\n*********************** In Partial Query *************************")
-    doc_subj = nlp(str(subj))
-    doc_pred = nlp(str(pred))
-    doc_obj = nlp(str(obj))
-    r1 = []
-    r2 = []
-    r3 = False
+# A recursive helper function to traverse treeDict and format it to json
+def PreorderFormat(curDict):
+    if len(curDict) == 0:
+        return;
     
-    for token_subj in doc_subj:
-        # get the URI for partial subj
-        if len(doc_subj)>1:
-            print("\nFor partial subject \"" + token_subj.text + "\":")
-            part_subj = QueryURI(token_subj.text)
+    childList = []
+    for key in curDict:
+        children = PreorderFormat(curDict[key])
+        if children:
+            childList.append({
+                "name": key,
+                "children": children
+            })
         else:
-            part_subj = subjURI
+            childList.append({
+                "name": key
+            })
+    return childList
+    
+        
+def FormatToJson(treeDict):
+    result = PreorderFormat(treeDict)
+    finalResult = None
+    if result:
+        finalResult = {
+            "name": "GroundRoot",
+            "children": result
+        }
+    return finalResult
+    
+# extract one triple from given sentence
+def RunNER(sen):
+    # initialize the named entity list
+    entityList = []
+    
+    # parse sentence
+    doc = nlp(str(sen))
+    print('\nOriginal Sentence:\n' + sen)
+
+    #ents = [(e.text, e.start_char, e.end_char, e.label_) for e in doc.ents]
+    chunks = []
+    for chunk in doc.noun_chunks:
+        if "subj" in chunk.root.dep_ or "obj" in chunk.root.dep_:
+            # test whether current chunk is or contains stop words
+            result = ''
+            doc_phrase = nlp(chunk.text)
+            for token in doc_phrase:
+                #print(token.text, token.is_stop, token.lemma_)
+                if not token.is_stop and token.lemma_ != "-PRON-":
+                # exclude stop words and personal pronouns (whose lemma_ is "-PRON-")
+                    result = result + token.text + ' '
             
-        for token_pred in doc_pred:
-            # get the URI for partial pred
-            if len(doc_pred)>1:
-                print("\nFor partial predicate \"" + token_pred.text + "\":")
-                part_pred = QueryURI(token_pred.text)
-            else:
-                part_pred = predURI
-                
-            for token_obj in doc_obj:
-                #print(token_obj.text, token_obj.lemma_, token_obj.pos_, token_obj.tag_, token_obj.dep_,
-                #      token_obj.shape_, token_obj.is_alpha, token_obj.is_stop)
-                if token_subj.is_stop and token_pred.is_stop and token_obj.is_stop:
-                    continue
-                    
-                # get the URI for partial obj
-                if len(doc_obj)>1:
-                    print("\nFor partial object \"" + token_obj.text + "\":")
-                    part_obj = QueryURI(token_obj.text)
-                else:
-                    part_obj = objURI
+            if result != '':
+                chunks.append(result[:-1])
+    
+    return chunks
 
-                r1 = ComponentQuery1(part_subj, part_pred, part_obj)
-                #print(r1)
-                if r1 and len(r1)>0:
-                    r2 = ComponentQuery2(part_subj, part_pred, part_obj)
-                    if r2 and len(r2)>0:
-                        r3 = ComponentQuery3(part_subj, part_pred, part_obj)
-                        if r3:
-                            print("\nFind triple with 3 components:")
-                            print(part_subj + " - " + part_pred + " - " + part_obj)
-                            break
-                        else:
-                            print("\nFind triple with 2 components:")
-                            PrintQueryResult(r2)
-                            #print(r2)
-                    else:
-                        print("\nFind triple with 1 components:")
-                        PrintQueryResult(r1)
-                        '''if part_subj != None:
-                            print(part_subj[1:len(part_subj)-1])
-                        if part_pred != None:
-                            print(part_pred[1:len(part_pred)-1])
-                        if part_obj != None:
-                            print(part_obj[1:len(part_obj)-1])'''
-                        
-    return len(r1)>0 or len(r2)>0 or r3
+# instantiate Slack client
+slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+# starterbot's user ID in Slack: value is assigned after the bot starts up
+starterbot_id = None
 
-def PrintQueryResult(results):
-    # for sparqlWrapper
-    for group in results:
-        print(group)
-        for result in group["results"]["bindings"]:
-            print('( ', end='')
-            if "sub" in result:
-                print(NameURI(result["sub"]["value"]) + ' - ', end='')
-            else:
-                print('* -', end='')
-            if "pred" in result:
-                print(NameURI(result["pred"]["value"]) + ' - ', end='')
-            else:
-                print('* -', end='')
-            if "obj" in result:
-                print(NameURI(result["obj"]["value"]), end='')
-            else:
-                print('* )\n', end='')
+# constants
+RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
+EXAMPLE_COMMAND = "do"
+MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
 
-def GetQueryResult(results):
-    # for sparqlWrapper
-    return results
-    queryResult = ''
-    for group in results:
-        print(group)
-        for result in group["results"]["bindings"]:
-            queryResult += '( '
-            if "sub" in result:
-                queryResult += NameURI(result["sub"]["value"]) + ' - '
-            else:
-                queryResult += '* -'
-            if "pred" in result:
-                queryResult += NameURI(result["pred"]["value"]) + ' - '
-            else:
-                queryResult += '* -'
-            if "obj" in result:
-                queryResult += NameURI(result["obj"]["value"])
-            else:
-                queryResult += '* )'
-    print(queryResult)
-    return queryResult
- 
+# Parses a list of events coming from the Slack RTM API to find bot commands
+# If a bot command is found, this function returns a tuple of command and channel.
+# If its not found, then this function returns None, None
+def parse_bot_commands(slack_events):
+    for event in slack_events:
+        # we only want message event
+        if event["type"] == "message" and not "subtype" in event:
+            # Check direct mentions
+            #user_id, message = parse_direct_mention(event["text"])
+            #if user_id == starterbot_id:
+            #    return message, event["channel"]
+            return event["text"], event["channel"]
+    return None, None
+
+# Finds a direct mention (a mention that is at the beginning) in message text
+# return the user ID which was mentioned
+# If there is no direct mention, returns None
+def parse_direct_mention(message_text):
+    matches = re.search(MENTION_REGEX, message_text) # use a regular expression
+    return (matches.group(1), matches.group(2).strip()) if matches else (None, None)
+
 # load Spacy NLP dictionary
 nlp = spacy.load('en_core_web_sm')
 
 # load DBPD ontology and construct graph for query
 #m_world = World()# Owlready2 stores every triples in a ‘World’ object
-#m_onto = m_world.get_ontology("./server_resource/dbpedia.owl").load()
+#m_onto = m_world.get_ontology("dbpedia.owl").load()
 #m_graph = m_world.as_rdflib_graph()
-#sparql = SPARQLWrapper("./server_resource/dbpedia.owl")#http://dbpedia.org/sparql
+#sparql = SPARQLWrapper("dbpedia.owl")#http://dbpedia.org/sparql
 sparql = SPARQLWrapper("http://dbpedia.org/sparql")
 sparql.setReturnFormat(JSON)
 
-def main_loop(sampleSentence=""): 
-    # load data
-    file = open("./server_resource/shortdataset.csv", "r")
-    #file = open("./server_resource/newdataset_formatted.csv", "r")
-    reader = csv.reader(file)
-    senSet = []
-    for item in reader:
-        #format sentences in item as string
-        fullP = "".join(item)
-        splitP = fullP.split(";", 3)
-        splitS = splitP[3][1:len(splitP[3])].split(".")
-        #print(splitS)
-        for sen in splitS:
-            senSet.append(sen)#store the sentence into an array
-    file.close()
-    print("Total sentences: " + str(len(senSet)))
+treeDict = dict()
+cacheDict = dict()
 
-    # pre-processing
-    PreProcess(senSet)
+def ProcessSen(sentence):
+# parse and query each sentence
+#for index in range(10, 20):
+#for index in range(len(senSet)):
+    #index = 26
+    #sampleSentence = "Do you remember the administrator of this computer?"
+    #sampleSentence = "Neverland has the tree house."
 
-    # parse and query each sentence
-    #for index in range(len(senSet)):
-    index = 3
-    #sampleSentence = "Nurses are females"
+    # extract named entities from current sentence
+    #entityList = RunNER(sampleSentence)
+    entityList = RunNER(sentence)
+    print(entityList)
 
-    # extract triple from current sentence
-    [subj, pred, obj] = ExtractTriple(sampleSentence)
-    #[subj, pred, obj] = ExtractTriple(senSet[index], index)
-    print('Triple to Query: \n' + subj + ' - ' + pred + ' - ' + obj)
+    # look up the URI for the entities
+    URIList = []
+    for entity in entityList:
+        print("\nFor \"" + entity + "\":")
+        try:
+            if entity in cacheDict:
+                entityURI = cacheDict[entity];
+                if entityURI != None: 
+                    print("You mentioned", entity, "before. Do you mean", entityURI, "?")
+                else:
+                    print("You mentioned", entity, "before, but we can't find anything about it.")
 
-    # parse with AllenNLP
-    '''from allennlp.predictors import Predictor
-    predictor = Predictor.from_path("srl-model-2018.05.25.tar.gz")
-    results = predictor.predict(senSet[index])
-    for verb in zip(results["verbs"]):
-        print(f"{verb}")
-    #for word, verb in zip(results["words"], results["verbs"]):
-    #    print(f"{word}\t{verb}")
-    '''
-    #for word, tag in zip(results["words"], results["tags"]):
-    #    print(f"{word}\t{tag}")
-
-    #subj = "province link"
-    if pred == "be":
-        pred = "type"
-    #obj = "person"
-
-    # look up the URI for subj, pred and obj
-    options = []
-    print("\nFor subject \"" + subj + "\":")
-    subjURI = QueryURI(subj)
-    if subjURI != None:
-        options.append(subjURI)
-    else:
-        options.append([])
-
-    print("\nFor predicate \"" + pred + "\":")
-    predURI = QueryURI(pred)
-    if predURI != None:
-        options.append(predURI)
-    else:
-        options.append([])
-
-    print("\nFor object \"" + obj + "\":")
-    objURI = QueryURI(obj)
-    if objURI != None:
-        options.append(objURI)
-    else:
-        options.append([])
-
-    return options
-
-def main_loop2(subjURI, predURI, objURI): 
-    try:
-        print("\n")
-        print("subject: " + subjURI[0:len(subjURI)])
-        print("predicate: " + predURI[0:len(predURI)])
-        print("object: " + objURI[0:len(objURI)])
-    except:
-        print("none")
+            else:
+                entityURI = QueryURI(entity)
+                cacheDict[entity] = entityURI
         
-    # query the triple in dbpd with SPARQL
-    # queryResult = QueryTriple(subj, pred, obj)
-    # print('Triple Query Result: ' + str(queryResult))
+            print("\n")
+            #print("URI: " + entityURI[1:len(entityURI)-1])
+            if entityURI != None:
+                URIList.append(entityURI)
+        except:
+            print("none")
 
-    # query the triple with several different methods
-    r3 = ComponentQuery3(subjURI, predURI, objURI)
-    if r3:
-        print("\nFind origin component:")
-        result = GetQueryResult(r3)
-        #print(subj + ' - ' + pred + ' - ' + obj)
-    else:
-        r2 = ComponentQuery2(subjURI, predURI, objURI)
-        if r2 and len(r2)>0:
-            print("\nFind 2 components:")
-            result = GetQueryResult(r2)
-        else:
-            #result = PartialQuery(subj, pred, obj, subjURI, predURI, objURI)
-            result = "Find nothing"
-            if not result:
-                print ("Find nothing")
-    return result
+    print(URIList)
+
+    if len(URIList)>0:
+        AppendTree(URIList, treeDict)
+
+    treeJson = FormatToJson(treeDict)
+    print(treeJson)
+
+#with open('../IdeaTest/Tree/conv-test.json', 'w') as outfile:  
+#    json.dump(treeJson, outfile, indent = 2)
+
+# Executes bot command if the command is known
+def handle_command(command, channel):
+    # Default response is help text for the user
+    # default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
+    default_response = ProcessSen(command)
+
+    # Finds and executes the given command, filling in response
+    response = None
+    # This is where you start to implement more commands!
+    if command.startswith(EXAMPLE_COMMAND):
+        response = "Sure...write some more code then I can do that!"
+
+    # Sends the response back to the channel
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=channel,
+        text=response or default_response
+    )
 
 # For sever operation
 app = Flask(__name__)
@@ -604,4 +333,18 @@ def process_data():
 
 
 if __name__ == '__main__':
+    # communication with slack
+    if slack_client.rtm_connect(with_team_state=False):
+        print("Starter Bot connected and running!")
+        # Read bot's user ID by calling Web API method `auth.test`
+        starterbot_id = slack_client.api_call("auth.test")["user_id"]
+        while True:
+            command, channel = parse_bot_commands(slack_client.rtm_read())
+            if command:
+                handle_command(command, channel)
+            time.sleep(RTM_READ_DELAY) # the program pauses to save CPU time
+    else:
+        print("Connection failed. Exception traceback printed above.")
+
+    # communication with frontend
     app.run()

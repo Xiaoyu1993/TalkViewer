@@ -1,7 +1,7 @@
 //jQuery
 $("document").ready(function() {
     //submit click function
-    $("#button-submit").click(function(){
+    $("#button").click(function(){
         var text = $("#text-input").val();
         if(text != null){
             //send data to the server
@@ -39,7 +39,12 @@ $("document").ready(function() {
     });
 
     $('#chooseSen a').on('click', function(){
-        var text = $(this).text()
+        $("#text-input").val($(this).text());
+    });
+
+    //submit click function
+    $("#button-submit").click(function(){
+        var text = $("#text-input").val();
         if(text != null){
             //send data to the server
             var data = {};
@@ -50,10 +55,9 @@ $("document").ready(function() {
             // Flask style post
             $.post("/request", data, function(options,status){
                 //alert('flask post');
-                console.log(options)
                 index = 0;
                 data = options[index];
-                console.log(data)
+                //console.log(data)
                 selections = []
                 $("#label0").text("0: " + data[0].slice(29,-1));
                 $("#label1").text("1: " + data[1].slice(29,-1));
@@ -61,52 +65,55 @@ $("document").ready(function() {
                 $("#label3").text("3: " + data[3].slice(29,-1));
                 $("#label4").text("4: " + data[4].slice(29,-1));
                 $('input[name="options"]').click( function() {
-                    if(index < 2){
-                        value = $(this).val();
-                        if(value >= -1 && value <= 4){
-                            console.log("place 1")
-                            selections.push(data[value]);
-                            index += 1;
-                        }else
-                        {
-                            alert('Please select a word/phrase');
-                        }
-                    
-                        data = options[index];
-                        console.log(data)
-                        if(data.length > 0){
-                            console.log("place 2")
-                            $("#label0").text("0: " + data[0].slice(29,-1));
-                            $("#label1").text("1: " + data[1].slice(29,-1));
-                            $("#label2").text("2: " + data[2].slice(29,-1));
-                            $("#label3").text("3: " + data[3].slice(29,-1));
-                            $("#label4").text("4: " + data[4].slice(29,-1));
-                        }else{
-                            index += 1;
-                        }
+                    if (data && data.length){//for second round selection
+                        if(index < 2){
+                            value = $(this).val();
+                            if(value >= -1 && value <= 4){
+                                console.log(value)
+                                selections.push(data[value]);
+                                console.log(selections)
+                                index += 1;
+                            }else
+                            {
+                                alert('Please select a word/phrase');
+                            }
                         
-                    }else{
-                        value = $(this).val();
-                        console.log("place 3")
-                        if(value >= -1 && value <= 4){
-                            selections.push(data[value]);
-                            index += 1;
-                        }else
-                        {
-                            alert('Please select a word/phrase');
+                            data = options[index];
+                            console.log(data)
+                            if(data.length > 0){//may not have complete object-predicate-subject every time
+                                $("#label0").text("0: " + data[0].slice(29,-1));
+                                $("#label1").text("1: " + data[1].slice(29,-1));
+                                $("#label2").text("2: " + data[2].slice(29,-1));
+                                $("#label3").text("3: " + data[3].slice(29,-1));
+                                $("#label4").text("4: " + data[4].slice(29,-1));
+                            }else{
+                                index += 1;
+                            }
+                            
+                        }else{
+                            value = $(this).val();
+                            if(value >= -1 && value <= 4){
+                                console.log(value)
+                                selections.push(data[value]);
+                                console.log(selections)
+                                index += 1;
+                            }else
+                            {
+                                alert('Please select a word/phrase');
+                            }
+                            //console.log(selections)
+                            data = {};
+                            data['type'] = "select"
+                            data['str'] = JSON.stringify(selections)
+                            console.log(data)
+                
+                            // Flask style post
+                            $.post("/request", data, function(result,status){
+                                //alert('flask post');
+                                console.log(result)
+                                $("#tripleResult").text(JSON.stringify(result));
+                            },"json");
                         }
-                        //console.log(selections)
-                        data = {};
-                        data['type'] = "select"
-                        data['str'] = JSON.stringify(selections)
-                        console.log(data)
-            
-                        // Flask style post
-                        $.post("/request", data, function(result,status){
-                            //alert('flask post');
-                            console.log(result)
-                            $("#tripleResult").text(JSON.stringify(result));
-                        },"json");
                     }
                 });
                 //});
@@ -301,7 +308,7 @@ Vue.component('input-box', {
         
         <div class="dropdown">
             <label for="chooseSen">Enter text or</label>
-            <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button id="dropdownBtn" class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Choose here
             </button>
             <div id="chooseSen" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -406,7 +413,7 @@ Vue.component('input-box', {
                 this.chooseSent = null
             }
             else{
-                this.errors.push("Please type or choose a test sentence.")
+                //this.errors.push("Please type or choose a test sentence.")
             }
         }
     }
