@@ -1,13 +1,12 @@
 from flask import Flask, request, render_template, jsonify
+from flask_socketio import SocketIO
 import random as r
 import math as m
 import json
 
-# export SLACK_BOT_TOKEN='xoxb-602325181223-616519967379-gJSi7r5W3ekXrVKEgvBz4gWJ'
-
 import os
-import time
-import re
+from threading import Lock
+# export SLACK_BOT_TOKEN='blabla'
 from slackclient import SlackClient
 
 import csv
@@ -25,8 +24,8 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 import re
 import xml.etree.ElementTree as ET
 
-from allennlp.common.testing import AllenNlpTestCase
-from allennlp.predictors.predictor import Predictor
+#from allennlp.common.testing import AllenNlpTestCase
+#from allennlp.predictors.predictor import Predictor
 
 # pre-processing
 def PreProcess(senSet):
@@ -82,7 +81,7 @@ def QueryHierarchy(URI):
     endFlag = False # to mark whether a dbo:entity is found in current level
     
     while not endFlag:
-        endFlag = True;
+        endFlag = True
         
         qSelect = """
             SELECT ?type WHERE 
@@ -116,10 +115,10 @@ def QueryHierarchy(URI):
 # get ontology hierarchy for every keyword and append the knowledge tree
 def AppendTree(URIList, treeDict):
     for URI in URIList:
-        hierarchy = QueryHierarchy(URI);
+        hierarchy = QueryHierarchy(URI)
         #print(hierarchy)
         
-        curDict = treeDict;
+        curDict = treeDict
         for curKey in hierarchy:
             if curKey in curDict:
                 curDict = curDict[curKey]
@@ -130,7 +129,7 @@ def AppendTree(URIList, treeDict):
 # A recursive helper function to traverse treeDict and format it to json
 def PreorderFormat(curDict):
     if len(curDict) == 0:
-        return;
+        return
     
     childList = []
     for key in curDict:
@@ -183,16 +182,6 @@ def RunNER(sen):
                 chunks.append(result[:-1])
     
     return chunks
-
-# instantiate Slack client
-slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-# starterbot's user ID in Slack: value is assigned after the bot starts up
-starterbot_id = None
-
-# constants
-RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
-EXAMPLE_COMMAND = "do"
-MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
 
 # Parses a list of events coming from the Slack RTM API to find bot commands
 # If a bot command is found, this function returns a tuple of command and channel.
@@ -248,7 +237,7 @@ def ProcessSen(sentence):
         print("\nFor \"" + entity + "\":")
         try:
             if entity in cacheDict:
-                entityURI = cacheDict[entity];
+                entityURI = cacheDict[entity]
                 if entityURI != None: 
                     print("You mentioned", entity, "before. Do you mean", entityURI, "?")
                 else:
@@ -271,32 +260,10 @@ def ProcessSen(sentence):
         AppendTree(URIList, treeDict)
 
     treeJson = FormatToJson(treeDict)
-    print(treeJson)
+    return treeJson
 
 #with open('../IdeaTest/Tree/conv-test.json', 'w') as outfile:  
 #    json.dump(treeJson, outfile, indent = 2)
-
-# Executes bot command if the command is known
-def handle_command(command, channel):
-    # Default response is help text for the user
-    # default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
-    default_response = ProcessSen(command)
-
-    # Finds and executes the given command, filling in response
-    response = None
-    # This is where you start to implement more commands!
-    if command.startswith(EXAMPLE_COMMAND):
-        response = "Sure...write some more code then I can do that!"
-
-    # Sends the response back to the channel
-    slack_client.api_call(
-        "chat.postMessage",
-        channel=channel,
-        text=response or default_response
-    )
-
-# For sever operation
-app = Flask(__name__)
 
 #str to json
 def strToJson(s):
@@ -306,16 +273,84 @@ def strToJson(s):
     js = json.dumps(stru)
     return js
 
+# For sever operation
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'VIDI_ONTOLOGY'
+socketio = SocketIO(app, engineio_logger=True)
+thread = None
+thread_lock = Lock()
+
+# instantiate Slack client
+slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+# starterbot's user ID in Slack: value is assigned after the bot starts up
+starterbot_id = None
+
+# constants
+RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
+EXAMPLE_COMMAND = "do"
+
+
+# Executes bot command if the command is known
+def handle_command(command, channel):
+    # Default response is help text for the user
+    # default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
+    default_response = None
+
+    # Finds and executes the given command, filling in response
+    response = ProcessSen(command)
+    # This is where you start to implement more commands!
+    if command.startswith(EXAMPLE_COMMAND):
+        response = "Sure...write some more code then I can do that!"
+
+    # send updated data to visualization
+    socketio.emit('server_response',
+                {'data': response},
+                namespace='/ontoTree')
+
+    # Sends the response back to slack
+    '''slack_client.api_call(
+        "chat.postMessage",
+        channel=channel,
+        text=response or default_response
+    )'''
+
+def background_thread():
+    while True:
+        command, channel = parse_bot_commands(slack_client.rtm_read())
+        #command = "Businessman is a person."
+        if command:
+            handle_command(command, channel)
+        socketio.sleep(RTM_READ_DELAY)
+    '''while True:
+        socketio.sleep(1)
+        command, channel = parse_bot_commands(slack_client.rtm_read())
+        response = None
+        if command:
+            response = ProcessSen(command)
+        t = random_int_list(1, 100, 10)
+        print(t)
+        socketio.emit('server_response',
+                      {'data': response},
+                      namespace='/ontoTree')'''
+
+@socketio.on('connect', namespace='/ontoTree')
+def test_connect():
+    global thread
+    with thread_lock:
+        if thread is None:
+            thread = socketio.start_background_task(target=background_thread)
+
 @app.route('/')
 def my_form():
-    return render_template('index.html')
+    #return render_template('index.html')
+    return render_template('index.html', async_mode=socketio.async_mode)
 
 
 @app.route('/request', methods=['POST',"GET"])
 def process_data():
     dataType = request.form.get("type")
 
-    if dataType == "sent":
+    '''if dataType == "sent":
         text = request.form.get("str")
         print("Input sentence: " + text)
         #iterate = int(text)
@@ -327,24 +362,23 @@ def process_data():
         select = json.loads(request.form.get("str"))
         result = main_loop2(select[0], select[1], select[2])
         print(result)
-        return json.dumps(result)
-
-
-
+        return json.dumps(result)'''
 
 if __name__ == '__main__':
-    # communication with slack
+    # connect to slack
     if slack_client.rtm_connect(with_team_state=False):
+        # communication with frontend
         print("Starter Bot connected and running!")
         # Read bot's user ID by calling Web API method `auth.test`
         starterbot_id = slack_client.api_call("auth.test")["user_id"]
-        while True:
-            command, channel = parse_bot_commands(slack_client.rtm_read())
-            if command:
-                handle_command(command, channel)
-            time.sleep(RTM_READ_DELAY) # the program pauses to save CPU time
+
+        # multiprocessing
+        #p = Process(target=Slack_loop, args=('test',fn))
+        #p.start() 
     else:
         print("Connection failed. Exception traceback printed above.")
-
-    # communication with frontend
-    app.run()
+    
+    # run Flask server
+    # app.run()
+    socketio.run(app)
+    # export SLACK_BOT_TOKEN='blabla'

@@ -107,7 +107,16 @@ var localData =
     buildHeap( localData )
 });*/
 
+$(document).ready(function() {
+  console.log("try to connect");
+  namespace = '/ontoTree';
+  var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
+  socket.on('server_response', function(res) {
+      console.log("Receive data: ", res);
+      buildHeap( res.data );
+  });
+});
 
 var margin = {top: 90, right: 90, bottom: 60, left: 90},
     width = 860 - margin.left - margin.right,
@@ -138,6 +147,8 @@ function buildHeap(inData){
 
    //root = d3.hierarchy(newsource, function(d) { return d.children; });
    root = d3.hierarchy(inData);
+
+   console.log(root);
 
    root.x0 = 0;
    root.y0 = width/2;
