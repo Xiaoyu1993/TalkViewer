@@ -10787,7 +10787,11 @@ function m_tree() {
           ky = dy / (bottom.depth || 1);
       root.eachBefore(function(node) {
         node.x = (node.x + tx) * kx;
-        node.y = node.depth * ky;
+        //node.y = node.depth * ky;
+        if(node.depth == 0 || node.depth == 1)
+          node.y = node.depth * ky;
+        else
+          node.y = ky + 5*Math.log10(node.depth) * ky;
       });
     }
 
@@ -10875,7 +10879,11 @@ function m_tree() {
 
   function sizeNode(node) {
     node.x *= dx;
-    node.y = node.depth * dy;
+    //node.y = node.depth * dy;
+    if(node.depth == 0 || node.depth == 1)
+      node.y = node.depth * ky;
+    else
+    node.y = ky + 5*Math.log10(node.depth) * ky;
   }
 
   tree.separation = function(x) {
@@ -17090,8 +17098,8 @@ exports.packSiblings = siblings;
 exports.packEnclose = enclose;
 exports.partition = partition;
 exports.stratify = stratify;
-exports.tree = tree;
-//exports.tree = m_tree;
+//exports.tree = tree;
+exports.tree = m_tree;
 exports.treemap = index$3;
 exports.treemapBinary = binary;
 exports.treemapDice = treemapDice;
