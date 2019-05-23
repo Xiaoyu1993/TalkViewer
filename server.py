@@ -98,15 +98,15 @@ def QueryHierarchy(URI):
             resultURI = '<' + result["type"]["value"] + '>'
             # begin the class part
             if "owl#Class" in resultURI:
-                endFlag = False;
+                endFlag = False
                 predicate = "rdfs:subClassOf"
-                break;
+                break
             # insert the first found dbo:entity into the path
             elif "http://dbpedia.org/ontology" in resultURI:
-                endFlag = False;
+                endFlag = False
                 curURI = resultURI
                 path.insert(0, resultURI)
-                break;
+                break
      
     # insert the common root node to current path
     path.insert(0, '<http://www.w3.org/2002/07/owl#Thing>')
@@ -256,11 +256,25 @@ def ProcessSen(sentence):
 
     print(URIList)
 
+    '''
+    # return the whole tree in json form
     if len(URIList)>0:
         AppendTree(URIList, treeDict)
 
     treeJson = FormatToJson(treeDict)
-    return treeJson
+    return treeJson'''
+
+    strPaths = []
+    if len(URIList)>0:
+        for URI in URIList:
+            strPath = ""
+            hierarchy = QueryHierarchy(URI)
+            for curKey in hierarchy:
+                strPath = strPath + curKey + "&-&"
+            print(strPath[:-3])
+            strPaths.append(strPath[:-3])
+
+    return strPaths
 
 #with open('../IdeaTest/Tree/conv-test.json', 'w') as outfile:  
 #    json.dump(treeJson, outfile, indent = 2)

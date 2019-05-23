@@ -101,6 +101,17 @@ var localData =
     ]
   }
 
+  var treeData = 
+  {
+      "name": "GroundRoot",
+      "children": [
+        {
+          "name": "<http://www.w3.org/2002/07/owl#Thing>",
+          "children": []
+        }
+      ]
+    }
+
 /*d3.json("conv.json", function(error, localData) {
     if (error) throw error;
     console.log(localData);
@@ -114,14 +125,22 @@ $(document).ready(function() {
 
   socket.on('server_response', function(res) {
       console.log("Receive data: ", res);
-      buildHeap( res.data );
+      updateHeap( res.data );
   });
 });
+
+function updateHeap(newData) {
+  newData.forEach( strPath => {
+    //buildHeap(root);
+    insertPos = root.insert(strPath); // insert the new data and return the root of the subtree
+    console.log(insertPos);
+    update(insertPos)
+  });
+}
 
 var margin = {top: 90, right: 90, bottom: 60, left: 90},
     width = 860 - margin.left - margin.right,
     height = 1080 - margin.top - margin.bottom;
-
 
 var i = 0,
     duration = 750,
@@ -129,6 +148,10 @@ var i = 0,
 
 var counter = 0;
 var treeData = {};
+
+// just leaving this global so i can mess with it in the console
+var nodes;
+var root;
 
 var svg = d3.select("#heap")
         .append("svg")
@@ -140,34 +163,34 @@ var g = svg.append("g")
 
 buildHeap( localData )
 
+function updateTree(insertData) {
+  
+}
+
 function buildHeap(inData){
 
    var newsource = {name: inData[0], children: getChildren(0, inData) }
 //   console.log('dl', newsource)
 
    //root = d3.hierarchy(newsource, function(d) { return d.children; });
-   root = d3.hierarchy(inData);
+   root = hierarchy(inData);
 
    console.log(root);
 
-   root.x0 = 0;
-   root.y0 = width/2;
+   root.x0 = width/2;
+   root.y0 = 0;
 
-   var tree = d3.tree()
-//var tree = m_tree()
-            .size([width, height]);
+   update.treeLayout = d3.tree()
+                          .size([width, height]);
 
-   update(root, tree)
+   update(root)
 }
 
-
-// just leaving this global so i can mess with it in the console
-var nodes;
-
-function update(source, tree){
+function update(source){
 //  root = d3.hierarchy(newsource, function(d) { return d.children; });
-
-    var treeData = tree(root)
+    //if (typeof update.treeLayout == 'undefined')
+    //  update.treeLayout = newLayout;
+    var treeData = update.treeLayout(root)
     console.log(treeData);
     nodes = treeData.descendants();
     var links = treeData.descendants().slice(1);
@@ -216,7 +239,7 @@ function update(source, tree){
     // UPDATE
     var nodeUpdate = nodeEnter.merge(node);
 
-    // Transition to the proper position for the node
+    // Transition for still existing nodes
     nodeUpdate.transition()
             .duration(duration)
             .attr("transform", function(d) {
@@ -234,9 +257,9 @@ function update(source, tree){
             .attr('cursor', 'pointer');
 
 
-    // Remove any exiting nodes
+    // Remove nodes that should be removed (move them to source than disappear)
     var nodeExit = node.exit().transition()
-            .duration(duration)
+            //.duration(duration)
             .attr("transform", function(d) {
                     return "translate(" + source.x + "," + (height - source.y) + ")";
                 })
@@ -271,14 +294,14 @@ function update(source, tree){
             return (totalLevels - d.depth)*2 + 2; 
         }); 
 
-    // Transition back to the parent element position
+    // Transition for still existing links
     linkUpdate.transition()
         .duration(duration)
         .attr('d', function(d){ return diagonal(d, d.parent) });
 
-    // Remove any exiting links
+    // Remove links that should be removed (move them to source than disappear)
     var linkExit = link.exit().transition()
-        .duration(duration)
+        //.duration(duration)
         .attr('d', function(d) {
             var o = {x: source.x, y: source.y}
             return diagonal(o, o)
