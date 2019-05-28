@@ -174,3 +174,16 @@ iframe {
   width: "100%";
   height: "1000px";
 }
+
+div.tooltip {	
+  position: absolute;			
+  text-align: center;			
+  width: 200px;					
+  height: 400px;					
+  padding: 2px;				
+  font: 12px sans-serif;		
+  /*background: rgb(210, 240, 215);	*/
+  border: 0px;		
+  border-radius: 8px;			
+  pointer-events: none;			
+}

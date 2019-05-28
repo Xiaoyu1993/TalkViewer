@@ -38,7 +38,7 @@ def PreProcess(senSet):
             s = senSet[index][i_start:i_end+2]
             senSet[index] = senSet[index].replace(s, "")
             
-def QueryURI(keywords, index=-2):
+def QueryURI(keywords, cacheDict, index=-2):
     localSite = 'http://localhost:1111/api/search/KeywordSearch?'
     onlineSite = 'http://lookup.dbpedia.org/api/search/KeywordSearch?'
     prefix = "{http://lookup.dbpedia.org/}"
@@ -52,7 +52,19 @@ def QueryURI(keywords, index=-2):
 
     root = ET.fromstring(response)
     result = root.findall(prefix + "Result")
+
+    # automaticly select from the options
+    '''confidence = 0
+    if len(result)>0:
+        index = 0
+        selected = "<" + result[index].find(prefix + "URI").text + ">"
+        #return selected
+    else:
+        print("Sorry, we find nothing for this stuff :(\n")
+        
+    return result'''
     
+    # let users select from the options
     if len(result)>0:
         selected = -1
         count = 0
@@ -125,6 +137,25 @@ def AppendTree(URIList, treeDict):
             else:
                 curDict[curKey] = dict()
                 curDict = curDict[curKey]
+
+# query information (abstract, thumbnail ...) about current uri
+def QueryInfo(URI, entityInfo):
+    sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+    sparql.setQuery("""
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        SELECT ?abstract ?thumb
+        WHERE {""" 
+            + URI + """ dbo:abstract ?abstract ."""
+            + URI + """ dbo:thumbnail ?thumb .
+        FILTER (lang(?abstract) = 'en')
+        }
+    """)
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    
+    for result in results["results"]["bindings"]:
+        entityInfo["abstract"] = result["abstract"]["value"]
+        entityInfo["thumbnail"] = result["thumb"]["value"]
     
 # A recursive helper function to traverse treeDict and format it to json
 def PreorderFormat(curDict):
@@ -244,7 +275,7 @@ def ProcessSen(sentence):
                     print("You mentioned", entity, "before, but we can't find anything about it.")
 
             else:
-                entityURI = QueryURI(entity)
+                entityURI = QueryURI(entity, cacheDict)
                 cacheDict[entity] = entityURI
         
             print("\n")
@@ -264,17 +295,33 @@ def ProcessSen(sentence):
     treeJson = FormatToJson(treeDict)
     return treeJson'''
 
-    strPaths = []
-    if len(URIList)>0:
+    entityList = []
+    '''if len(URIList)>0:
         for URI in URIList:
             strPath = ""
             hierarchy = QueryHierarchy(URI)
             for curKey in hierarchy:
                 strPath = strPath + curKey + "&-&"
             print(strPath[:-3])
-            strPaths.append(strPath[:-3])
+            strPaths.append(strPath[:-3])'''
 
-    return strPaths
+    if len(URIList)>0:
+        for URI in URIList:
+            entityInfo = {
+                "uri": URI,
+                "strPath": "",
+                "sentence": sentence,
+                "abstract": None,
+                "thumbnail": None
+            }
+            hierarchy = QueryHierarchy(URI)
+            for curKey in hierarchy:
+                entityInfo["strPath"] = entityInfo["strPath"]  + curKey + "&-&"
+            entityInfo["strPath"] = entityInfo["strPath"][:-3]
+            QueryInfo(URI, entityInfo)
+            entityList.append(entityInfo)
+
+    return entityList
 
 #with open('../IdeaTest/Tree/conv-test.json', 'w') as outfile:  
 #    json.dump(treeJson, outfile, indent = 2)

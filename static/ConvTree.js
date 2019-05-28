@@ -35,82 +35,82 @@ var jsonData =
 
 var localData = 
 {
-    "name": "GroundRoot",
-    "children": [
-      {
-        "name": "<http://www.w3.org/2002/07/owl#Thing>",
-        "children": [
-          {
-            "name": "<http://dbpedia.org/ontology/Place>",
-            "children": [
-              {
-                "name": "<http://dbpedia.org/resource/Forest>"
-              },
-              {
-                "name": "<http://dbpedia.org/ontology/PopulatedPlace>",
-                "children": [
-                  {
-                    "name": "<http://dbpedia.org/ontology/Settlement>",
-                    "children": [
-                      {
-                        "name": "<http://dbpedia.org/resource/Overlook>"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "name": "<http://dbpedia.org/resource/Campus>"
-          },
-          {
-            "name": "<http://dbpedia.org/ontology/Species>",
-            "children": [
-              {
-                "name": "<http://dbpedia.org/ontology/Eukaryote>",
-                "children": [
-                  {
-                    "name": "<http://dbpedia.org/ontology/Plant>",
-                    "children": [
-                      {
-                        "name": "<http://dbpedia.org/resource/Tree>"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "name": "<http://dbpedia.org/resource/Volumetric_flow_rate>"
-          },
-          {
-            "name": "<http://dbpedia.org/ontology/ChemicalSubstance>",
-            "children": [
-              {
-                "name": "<http://dbpedia.org/resource/Solution>"
-              }
-            ]
-          },
-          {
-            "name": "<http://dbpedia.org/resource/Cliff>"
-          }
-        ]
-      }
-    ]
-  }
-
-  var treeData = 
-  {
-      "name": "GroundRoot",
+  "name": "GroundRoot",
+  "children": [
+    {
+      "name": "<http://www.w3.org/2002/07/owl#Thing>",
       "children": [
         {
-          "name": "<http://www.w3.org/2002/07/owl#Thing>",
-          "children": []
+          "name": "<http://dbpedia.org/ontology/Place>",
+          "children": [
+            {
+              "name": "<http://dbpedia.org/resource/Forest>"
+            },
+            {
+              "name": "<http://dbpedia.org/ontology/PopulatedPlace>",
+              "children": [
+                {
+                  "name": "<http://dbpedia.org/ontology/Settlement>",
+                  "children": [
+                    {
+                      "name": "<http://dbpedia.org/resource/Overlook>"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "<http://dbpedia.org/resource/Campus>"
+        },
+        {
+          "name": "<http://dbpedia.org/ontology/Species>",
+          "children": [
+            {
+              "name": "<http://dbpedia.org/ontology/Eukaryote>",
+              "children": [
+                {
+                  "name": "<http://dbpedia.org/ontology/Plant>",
+                  "children": [
+                    {
+                      "name": "<http://dbpedia.org/resource/Tree>"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "<http://dbpedia.org/resource/Volumetric_flow_rate>"
+        },
+        {
+          "name": "<http://dbpedia.org/ontology/ChemicalSubstance>",
+          "children": [
+            {
+              "name": "<http://dbpedia.org/resource/Solution>"
+            }
+          ]
+        },
+        {
+          "name": "<http://dbpedia.org/resource/Cliff>"
         }
       ]
     }
+  ]
+};
+
+var initData = 
+{
+  "name": "GroundRoot",
+  "children": [
+    {
+      "name": "<http://www.w3.org/2002/07/owl#Thing>",
+      "children": []
+    }
+  ]
+};
 
 /*d3.json("conv.json", function(error, localData) {
     if (error) throw error;
@@ -130,9 +130,9 @@ $(document).ready(function() {
 });
 
 function updateHeap(newData) {
-  newData.forEach( strPath => {
+  newData.forEach( entity => {
     //buildHeap(root);
-    insertPos = root.insert(strPath); // insert the new data and return the root of the subtree
+    insertPos = root.insert(entity); // insert the new data and return the root of the subtree
     console.log(insertPos);
     update(insertPos)
   });
@@ -161,11 +161,13 @@ var svg = d3.select("#heap")
 var g = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-buildHeap( localData )
+// Define the div for the tooltip
+var divTip = d3.select("body").append("div")	
+            .attr("class", "tooltip")				
+            .style("opacity", 0);
 
-function updateTree(insertData) {
-  
-}
+buildHeap( initData )
+
 
 function buildHeap(inData){
 
@@ -195,6 +197,7 @@ function update(source){
     nodes = treeData.descendants();
     var links = treeData.descendants().slice(1);
     totalLevels = treeData.height;
+    //console.log(totalLevels)
 
     // ****************** Nodes section ***************************
     // Update the nodes...
@@ -209,7 +212,24 @@ function update(source){
                 .attr("transform", function(d) {
                     return "translate(" + source.x0 + "," + (height - source.y0) + ")";
                 })
-                .on('click', click);
+                .on('click', click)
+                .on("mouseover", function(d) {
+                  if(d.abstract)	{	
+                    divTip.transition()		
+                        .duration(200)		
+                        .style("opacity", .9);		
+                    divTip.html(d.abstract)	
+                        .style("left", (d3.event.pageX + 40) + "px")		
+                        .style("top", (d3.event.pageY) + "px");	
+                  }
+                })
+                .on("mouseout", function(d) {
+                  if(d.abstract)	{		
+                    divTip.transition()		
+                        .duration(500)		
+                        .style("opacity", 0);	
+                  }
+                });
     console.log(nodeEnter)
 
     // Add Circle for the nodes
@@ -218,6 +238,41 @@ function update(source){
             .attr('r', 1e-6)
             .style("fill", function(d) {
                 return d._children ? "lightsteelblue" : "#fff";
+            });
+
+    nodeEnter.append("image")
+            .attr("xlink:href", function(d) { return d.thumbnail; })
+            .attr("x", "-20px")
+            .attr("y", "-20px")
+            .attr("width", "40px")
+            .attr("height", "40px");
+
+    var config = {
+      "avatar_size": 20//define the size of teh circle radius
+    }
+    var defs = svg.append('svg:defs');
+    nodeEnter.append('circle')
+            .attr('class', 'node')
+            .attr('r', 1e-6)
+            //.style("fill", "#fff")
+            .attr("fill", function(d, i) {
+              //if(d.thumbnail) {
+                var catpattern = defs.append("pattern")
+                .attr("id", "grump_avatar" + i)
+                .attr("width", config.avatar_size)
+                .attr("height", config.avatar_size)
+                .attr("patternUnits", "userSpaceOnUse")
+                
+                catpattern.append("image")
+                  .attr("xlink:href", d.thumbnail)
+                  .attr("width", config.avatar_size)
+                  .attr("height", config.avatar_size)
+                  .attr("x", 0)
+                  .attr("y", 0);
+                return "url(#grump_avatar" + i + ")"
+              //} else {
+              //  return "#fff";
+              //}
             });
 
     // Add labels for the nodes
@@ -291,7 +346,8 @@ function update(source){
     var linkUpdate = linkEnter.merge(link);
     g.selectAll("path.link")
         .style("stroke-width", function(d) {
-            return (totalLevels - d.depth)*2 + 2; 
+            //return (totalLevels - d.depth)*2 + 2; 
+            return 2;
         }); 
 
     // Transition for still existing links

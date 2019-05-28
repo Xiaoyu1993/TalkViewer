@@ -171,13 +171,13 @@ function node_count() {
     while ((node = node.parent) && (node.height < ++height));
   }
 
-  function node_insert(pathStr) {
-    if (!pathStr){
+  function node_insert(entity) {
+    if (!entity.strPath){
       console.log("ERROR: Invalid input for insert!");
       return;
     }
 
-    pathName = pathStr.split('&-&');
+    pathName = entity.strPath.split('&-&');
     if (pathName[0] != "<http://www.w3.org/2002/07/owl#Thing>"){
       console.log("ERROR: Invalid input for insert!");
       return;
@@ -226,8 +226,12 @@ function node_count() {
     });
 
     // trace back to update the .data domain of related nodes
+    node = nodes.pop();
+    // store the information in the leaf node
+    node.abstract = entity.abstract;
+    node.thumbnail = entity.thumbnail;
     newData = {
-      name: nodes.pop().data.name
+      name: node.data.name
     }
     while (node = nodes.pop()) {
       if (node.depth < insertPos.depth){
@@ -250,6 +254,8 @@ function node_count() {
     this.depth =
     this.height = 0;
     this.parent = null;
+    this.abstract = null;
+    this.thumbnail = null;
   }
   
   Node.prototype = hierarchy.prototype = {
