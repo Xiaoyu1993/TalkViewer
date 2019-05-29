@@ -230,6 +230,7 @@ function node_count() {
     // store the information in the leaf node
     node.abstract = entity.abstract;
     node.thumbnail = entity.thumbnail;
+    node.candidate = entity.candidate;
     newData = {
       name: node.data.name
     }
@@ -256,6 +257,7 @@ function node_count() {
     this.parent = null;
     this.abstract = null;
     this.thumbnail = null;
+    this.candidate = null;
   }
   
   Node.prototype = hierarchy.prototype = {

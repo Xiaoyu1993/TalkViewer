@@ -38,7 +38,7 @@ def PreProcess(senSet):
             s = senSet[index][i_start:i_end+2]
             senSet[index] = senSet[index].replace(s, "")
             
-def QueryURI(keywords, cacheDict, index=-2):
+def QueryURI(keywords, cacheDict, confidence, index=-2):
     localSite = 'http://localhost:1111/api/search/KeywordSearch?'
     onlineSite = 'http://lookup.dbpedia.org/api/search/KeywordSearch?'
     prefix = "{http://lookup.dbpedia.org/}"
@@ -49,23 +49,22 @@ def QueryURI(keywords, cacheDict, index=-2):
     '&MaxHits='     + '5' + \
     '&QueryString=' + keywords
     response = str(urllib.request.urlopen(request).read(), 'utf-8')
-
     root = ET.fromstring(response)
     result = root.findall(prefix + "Result")
 
     # automaticly select from the options
-    '''confidence = 0
+    confidence = 0
+    candiURI = []
     if len(result)>0:
-        index = 0
-        selected = "<" + result[index].find(prefix + "URI").text + ">"
-        #return selected
+        for name in result:
+            candiURI.append("<" + name.find(prefix + "URI").text + ">")
     else:
         print("Sorry, we find nothing for this stuff :(\n")
         
-    return result'''
+    return candiURI
     
     # let users select from the options
-    if len(result)>0:
+    '''if len(result)>0:
         selected = -1
         count = 0
         for name in result:
@@ -80,7 +79,7 @@ def QueryURI(keywords, cacheDict, index=-2):
             selected = None
         return selected
     else:
-        print("Sorry, we find nothing for this stuff :(\n")
+        print("Sorry, we find nothing for this stuff :(\n")'''
         
 # given a URI, query the ontology iteratively to get its path to root
 def QueryHierarchy(URI):
@@ -259,13 +258,16 @@ def ProcessSen(sentence):
 
     # extract named entities from current sentence
     #entityList = RunNER(sampleSentence)
-    entityList = RunNER(sentence)
-    print(entityList)
+    nameEntityList = RunNER(sentence)
+    print(nameEntityList)
 
     # look up the URI for the entities
     URIList = []
-    for entity in entityList:
+    entityList = []
+    for entity in nameEntityList:
         print("\nFor \"" + entity + "\":")
+        confidence = 0
+        candiURI = None
         try:
             if entity in cacheDict:
                 entityURI = cacheDict[entity]
@@ -275,17 +277,33 @@ def ProcessSen(sentence):
                     print("You mentioned", entity, "before, but we can't find anything about it.")
 
             else:
-                entityURI = QueryURI(entity, cacheDict)
+                candiURI = QueryURI(entity, cacheDict, confidence)
+                #entityURI = "<" + candiURI[0].find("{http://lookup.dbpedia.org/}" + "URI").text + ">"
+                entityURI = candiURI[0]
                 cacheDict[entity] = entityURI
-        
-            print("\n")
-            #print("URI: " + entityURI[1:len(entityURI)-1])
+            
+            # query further information and wrap them in entityInfo
             if entityURI != None:
-                URIList.append(entityURI)
+                #URIList.append(entityURI)
+                print(entityURI)
+                entityInfo = {
+                    "uri": entityURI,
+                    "strPath": "",
+                    "sentence": sentence,
+                    "abstract": None,
+                    "thumbnail": None,
+                    "candidate" : candiURI
+                }
+                print(entityInfo)
+                hierarchy = QueryHierarchy(entityURI)
+                for curKey in hierarchy:
+                    entityInfo["strPath"] = entityInfo["strPath"]  + curKey + "&-&"
+                entityInfo["strPath"] = entityInfo["strPath"][:-3]
+                QueryInfo(entityURI, entityInfo)
+                print(entityInfo)
+                entityList.append(entityInfo)
         except:
-            print("none")
-
-    print(URIList)
+            print("URI query failed!")
 
     '''
     # return the whole tree in json form
@@ -295,15 +313,7 @@ def ProcessSen(sentence):
     treeJson = FormatToJson(treeDict)
     return treeJson'''
 
-    entityList = []
-    '''if len(URIList)>0:
-        for URI in URIList:
-            strPath = ""
-            hierarchy = QueryHierarchy(URI)
-            for curKey in hierarchy:
-                strPath = strPath + curKey + "&-&"
-            print(strPath[:-3])
-            strPaths.append(strPath[:-3])'''
+    '''entityList = []
 
     if len(URIList)>0:
         for URI in URIList:
@@ -312,14 +322,15 @@ def ProcessSen(sentence):
                 "strPath": "",
                 "sentence": sentence,
                 "abstract": None,
-                "thumbnail": None
+                "thumbnail": None,
+                "candidate" : candiURI
             }
             hierarchy = QueryHierarchy(URI)
             for curKey in hierarchy:
                 entityInfo["strPath"] = entityInfo["strPath"]  + curKey + "&-&"
             entityInfo["strPath"] = entityInfo["strPath"][:-3]
             QueryInfo(URI, entityInfo)
-            entityList.append(entityInfo)
+            entityList.append(entityInfo)'''
 
     return entityList
 
@@ -353,6 +364,30 @@ EXAMPLE_COMMAND = "do"
 
 # Executes bot command if the command is known
 def handle_command(command, channel):
+    # Default response is help text for the user
+    # default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
+    default_response = None
+
+    # Finds and executes the given command, filling in response
+    response = ProcessSen(command)
+    # This is where you start to implement more commands!
+    if command.startswith(EXAMPLE_COMMAND):
+        response = "Sure...write some more code then I can do that!"
+
+    # send updated data to visualization
+    socketio.emit('server_response',
+                {'data': response},
+                namespace='/ontoTree')
+
+    # Sends the response back to slack
+    '''slack_client.api_call(
+        "chat.postMessage",
+        channel=channel,
+        text=response or default_response
+    )'''
+
+# Executes bot command if the command is known
+def handle_command_autotest(command, channel):
     # Default response is help text for the user
     # default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
     default_response = None

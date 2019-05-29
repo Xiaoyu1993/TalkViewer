@@ -236,6 +236,9 @@ function update(source){
     nodeEnter.append('circle')
             .attr('class', 'node')
             .attr('r', 1e-6)
+            .style("opacity", function(d) {
+              return d.thumbnail ? .0 : .9;
+            })
             .style("fill", function(d) {
                 return d._children ? "lightsteelblue" : "#fff";
             });
@@ -463,18 +466,25 @@ function diagonal(s, d) {
 
 
 // Toggle children on click.
+// d is the treeNode with layout, dataNode is the hierachy node
 function click(d) {
 // use the following to superficially change the text of the node.
 //  this.getElementsByTagName('text')[0].textContent = "clicked all over"
+    $("#label0").text("0: " + d.candidate[0].slice(29,-1));
+    $("#label1").text("1: " + d.candidate[1].slice(29,-1));
+    $("#label2").text("2: " + d.candidate[2].slice(29,-1));
+    $("#label3").text("3: " + d.candidate[3].slice(29,-1));
+    $("#label4").text("4: " + d.candidate[4].slice(29,-1));    
+
     // remove all sunburst
-    d3.selectAll(".sunburst").remove();
+    //d3.selectAll(".sunburst").remove();
 
     if (d.children) {
         d._children = d.children;
         d.children = null;
     } else {
         //if d is a children, show sunburst
-        if(!d._children){
+        /*if(!d._children){
             setTimeout(function () {
                 d3.json("flare.json", function(error, root_s) {
                     if (error) throw error;
@@ -497,7 +507,7 @@ function click(d) {
                         .text(function(d) { return d.data.name + "\n" + formatNumber(d.value); });
                 });
             }, 30);
-        }
+        }*/
 
         d.children = d._children;
         d._children = null;
