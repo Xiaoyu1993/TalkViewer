@@ -380,54 +380,55 @@ def handle_command(command, channel):
                 namespace='/ontoTree')
 
     # Sends the response back to slack
-    '''slack_client.api_call(
+    slack_client.api_call(
         "chat.postMessage",
         channel=channel,
-        text=response or default_response
-    )'''
-
-# Executes bot command if the command is known
-def handle_command_autotest(command, channel):
-    # Default response is help text for the user
-    # default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
-    default_response = None
-
-    # Finds and executes the given command, filling in response
-    response = ProcessSen(command)
-    # This is where you start to implement more commands!
-    if command.startswith(EXAMPLE_COMMAND):
-        response = "Sure...write some more code then I can do that!"
-
-    # send updated data to visualization
-    socketio.emit('server_response',
-                {'data': response},
-                namespace='/ontoTree')
-
-    # Sends the response back to slack
-    '''slack_client.api_call(
-        "chat.postMessage",
-        channel=channel,
-        text=response or default_response
-    )'''
+        text=command
+    )
 
 def background_thread():
+    # for reading in Slack conversation
     while True:
         command, channel = parse_bot_commands(slack_client.rtm_read())
-        #command = "Businessman is a person."
-        if command:
+        if command: 
             handle_command(command, channel)
+            print(channel)
+
         socketio.sleep(RTM_READ_DELAY)
-    '''while True:
-        socketio.sleep(1)
+
+    # for autotest
+    # load data
+    '''command, channel = None, None
+    while True:
         command, channel = parse_bot_commands(slack_client.rtm_read())
-        response = None
         if command:
-            response = ProcessSen(command)
-        t = random_int_list(1, 100, 10)
-        print(t)
-        socketio.emit('server_response',
-                      {'data': response},
-                      namespace='/ontoTree')'''
+            break
+    filename = os.path.join(app.static_folder, 'data', 'shortdataset.csv')
+    #filename = os.path.join(app.static_folder, 'data', 'newdataset_formatted.csv')
+    file = open(filename, "r")
+    #file = open("newdataset_formatted.csv", "r")
+    reader = csv.reader(file)
+    senSet = []
+    for item in reader:
+        # format sentences in item as string
+        fullP = "".join(item)
+        splitP = fullP.split(";", 3)
+        splitS = splitP[3][1:len(splitP[3])].split(".")
+        #print(splitS)
+        for sen in splitS:
+            senSet.append(sen)#store the sentence into an array
+    file.close()
+    print("Total sentences: " + str(len(senSet)))
+
+    # pre-processing
+    PreProcess(senSet)
+
+    # parse and query each sentence
+    entityList = []
+    for index in range(len(senSet)):
+        handle_command(senSet[index], channel)
+        socketio.sleep(RTM_READ_DELAY)'''
+
 
 @socketio.on('connect', namespace='/ontoTree')
 def test_connect():
@@ -459,6 +460,34 @@ def process_data():
         result = main_loop2(select[0], select[1], select[2])
         print(result)
         return json.dumps(result)'''
+
+@app.route('/customizeEntity', methods=['POST',"GET"])
+def updateWithCustommerRequest():
+    entityURI = request.form.get("uri")
+    print(entityURI)
+    entityInfo = {
+        "uri": entityURI,
+        "strPath": "",
+        "sentence": None,
+        "abstract": None,
+        "thumbnail": None,
+        "candidate" : None,
+    }
+    print(entityInfo)
+    hierarchy = QueryHierarchy(entityURI)
+    for curKey in hierarchy:
+        entityInfo["strPath"] = entityInfo["strPath"]  + curKey + "&-&"
+    entityInfo["strPath"] = entityInfo["strPath"][:-3]
+    QueryInfo(entityURI, entityInfo)
+    print(entityInfo)
+    result = [entityInfo]
+
+     # send updated data to visualization
+    socketio.emit('server_response',
+                {'data': result},
+                namespace='/ontoTree')
+    return json.dumps(result)
+
 
 if __name__ == '__main__':
     # connect to slack

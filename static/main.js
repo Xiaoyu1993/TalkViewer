@@ -306,7 +306,7 @@ Vue.component('input-box', {
             <input id="name" v-model="name"> 
         </p-->
         
-        <div class="dropdown">
+        <!--div class="dropdown">
             <label for="chooseSen">Enter text or</label>
             <button id="dropdownBtn" class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Choose here
@@ -325,36 +325,36 @@ Vue.component('input-box', {
         
         <p>
             <button type="submit" class="button" id = "button-submit"> Run </button>
-        </p>
+        </p-->
 
         <p>
-            <label> Which one is closer to what you mean? </label>
+            <label> Other alternatives of this entity: </label>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option0" value="0" checked>
+                <input id="radio0" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option0" value="0">
                 <label id="label0" class="form-check-label" for="option0">
                     {{candiSent[0]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option1" value="1">
+                <input id="radio1" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option1" value="1">
                 <label id="label1" class="form-check-label" for="option1">
                     {{candiSent[1]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option2" value="2">
+                <input id="radio2" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option2" value="2">
                 <label id="label2" class="form-check-label" for="option2">
                     {{candiSent[2]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option3" value="3">
+                <input id="radio3" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option3" value="3">
                 <label id="label3" class="form-check-label" for="option3">
                     {{candiSent[3]}}
                 </label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option4" value="4">
+                <input id="radio4" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option4" value="4">
                 <label id="label4" class="form-check-label" for="option4">
                     {{candiSent[4]}}
                 </label>

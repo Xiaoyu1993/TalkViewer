@@ -139,10 +139,12 @@ function updateHeap(newData) {
 }
 
 var margin = {top: 90, right: 90, bottom: 60, left: 90},
-    width = 860 - margin.left - margin.right,
-    height = 1080 - margin.top - margin.bottom;
+    width = window.innerWidth * 0.4 - margin.left - margin.right,
+    height = window.innerHeight * 0.9 - margin.top - margin.bottom;
+    console.log(width);
+    console.log(height);
 
-var i = 0,
+var index = 0,
     duration = 750,
     root;
 
@@ -203,7 +205,7 @@ function update(source){
     // Update the nodes...
     var node = g.selectAll('g.node')
             .data(nodes, function(d) {
-                return d.id || (d.id = ++i); 
+                return d.id || (d.id = ++index); 
             });
     console.log(nodes);
     // Enter any new nodes at the parent's previous position.
@@ -214,6 +216,7 @@ function update(source){
                 })
                 .on('click', click)
                 .on("mouseover", function(d) {
+                  console.log(d);
                   if(d.abstract)	{	
                     divTip.transition()		
                         .duration(200)		
@@ -237,23 +240,23 @@ function update(source){
             .attr('class', 'node')
             .attr('r', 1e-6)
             .style("opacity", function(d) {
-              return d.thumbnail ? .0 : .9;
+              return d.thumbnail ? .9 : .9;
             })
             .style("fill", function(d) {
                 return d._children ? "lightsteelblue" : "#fff";
             });
 
-    nodeEnter.append("image")
+    /*nodeEnter.append("image")
             .attr("xlink:href", function(d) { return d.thumbnail; })
             .attr("x", "-20px")
             .attr("y", "-20px")
             .attr("width", "40px")
-            .attr("height", "40px");
+            .attr("height", "40px");*/
 
     var config = {
       "avatar_size": 20//define the size of teh circle radius
     }
-    var defs = svg.append('svg:defs');
+    /*var defs = svg.append('svg:defs');
     nodeEnter.append('circle')
             .attr('class', 'node')
             .attr('r', 1e-6)
@@ -276,17 +279,18 @@ function update(source){
               //} else {
               //  return "#fff";
               //}
-            });
+            });*/
 
     // Add labels for the nodes
     nodeEnter.append('text')
             .attr("dy", ".35em")
-            .attr("x", function(d) {
-                    return d.children || d._children ? 13 : 13;
-            })
+            //.attr("x", function(d) {
+            //        return d.children || d._children ? -13 : 13;
+            //})
+            .attr("y", 20)
             .attr("text-anchor", function(d) {
                     //return d.children || d._children ? "end" : "start";
-                    return d.children || d._children ? "start" : "start";
+                    return d.children || d._children ? "middle" : "middle";
             })
             .text(function(d) { 
                 word = d.data.name;
@@ -349,8 +353,8 @@ function update(source){
     var linkUpdate = linkEnter.merge(link);
     g.selectAll("path.link")
         .style("stroke-width", function(d) {
-            //return (totalLevels - d.depth)*2 + 2; 
-            return 2;
+            return (totalLevels - d.depth)*2 + 2; 
+            //return 2;
         }); 
 
     // Transition for still existing links
@@ -360,7 +364,7 @@ function update(source){
 
     // Remove links that should be removed (move them to source than disappear)
     var linkExit = link.exit().transition()
-        //.duration(duration)
+        .duration(duration)
         .attr('d', function(d) {
             var o = {x: source.x, y: source.y}
             return diagonal(o, o)
@@ -470,20 +474,14 @@ function diagonal(s, d) {
 function click(d) {
 // use the following to superficially change the text of the node.
 //  this.getElementsByTagName('text')[0].textContent = "clicked all over"
-    $("#label0").text("0: " + d.candidate[0].slice(29,-1));
-    $("#label1").text("1: " + d.candidate[1].slice(29,-1));
-    $("#label2").text("2: " + d.candidate[2].slice(29,-1));
-    $("#label3").text("3: " + d.candidate[3].slice(29,-1));
-    $("#label4").text("4: " + d.candidate[4].slice(29,-1));    
-
+  
     // remove all sunburst
     //d3.selectAll(".sunburst").remove();
 
     if (d.children) {
         d._children = d.children;
         d.children = null;
-    } else {
-        //if d is a children, show sunburst
+        //if d is not a children, show sunburst
         /*if(!d._children){
             setTimeout(function () {
                 d3.json("flare.json", function(error, root_s) {
@@ -508,9 +506,53 @@ function click(d) {
                 });
             }, 30);
         }*/
+    } else {
+      for (i = 0; i < 5; i++){
+        candiText = "";
+        if(i < d.candidate.length)
+          candiText = i.toString() + ": " + d.candidate[i].slice(29,-1);
+        if(d.data.name == d.candidate[i])
+          candiText += " (Selected)"
+        $("#label" + i.toString()).text(candiText);
+      }
+  
+      $('input[name="options"]').click( function() {
+        //console.log(d.candidate);
+        i_selected = $(this).val();
+        if (i_selected >= 0 && i_selected < d.candidate.length) { // to make sure it is a valid selection
+          var data = {};
+          data['uri'] = d.candidate[i_selected];
+          // Flask style post
+          $.post("/customizeEntity", data, function(result,status){
+              //alert('flask post');
+              console.log(result)
+              if(result.length > 0) {
+                // fill out missing information
+                result[0].candidate = d.candidate;
+                result[0].sentence = d.sentence;
+  
+                //remove old branch
+                singleParent = d;
+                while (singleParent.parent.children.length == 1) {
+                  singleParent = singleParent.parent;
+                } 
+                placeToRemove = singleParent.parent;
+                //console.log($inArray(singleParent, placeToRemove.children));
+                //singleParent._children = singleParent.children;
+                placeToRemove.children = placeToRemove.children.filter(function(child){
+                  return child.id != singleParent.id;
+                });
+                
+  
+                //add new branch
+                updateHeap(result);
+              }
+          },"json");
+        }
+      });
 
-        d.children = d._children;
-        d._children = null;
+      d.children = d._children;
+      d._children = null;
     }
 
   update(d);
