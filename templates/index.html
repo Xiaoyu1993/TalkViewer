@@ -5,13 +5,21 @@
         
         <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.rawgit.com/AndreaLombardo/BootSideMenu/master/css/BootSideMenu.css">
 
-        <script src="{{ url_for('static',filename='d3.v4.js') }}"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/1.5.1/socket.io.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+
+        <script src="{{ url_for('static',filename='js/d3.v4.js') }}"></script>
+        <script src="{{ url_for('static',filename='js/BootSideMenu.js') }}"></script>
+        <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+        
     </head>
     <body>
-        <div class="nav-bar"></div>
+        <!--div class="nav-bar"></div-->
 
         <div class="row">
             <div id="left" class="left-column">          
@@ -30,18 +38,34 @@
                 <div id = "test">
                 </div>
             </div>
+
+            <!--div id="sliding-demo">
+                <div class="list-group">
+                  <a href="https://www.jquery-az.com/bootstrap-tips-tutorials/" class="list-group-item ">Bootstrap Tutorials</a>
+                  <a href="https://www.jquery-az.com/jquery-tips/" class="list-group-item">jQuery Tips</a>
+                  <a href="https://www.jquery-az.com/bootstrap-tips-tutorials/" class="list-group-item">Bootstrap Tutorials</a>
+                  <a href="https://www.jquery-az.com/jquery-tips/" class="list-group-item">jQuery Tips</a>
+                  <a href="https://www.jquery-az.com/bootstrap-tips-tutorials/" class="list-group-item active">Bootstrap Tutorials</a>
+                  <a href="https://www.jquery-az.com/jquery-tips/" class="list-group-item">jQuery Tips</a>
+                  <a href="https://www.jquery-az.com/bootstrap-tips-tutorials/" class="list-group-item">Bootstrap Tutorials</a>
+                  <a href="https://www.jquery-az.com/jquery-tips/" class="list-group-item">jQuery Tips</a>
+                </div>
+            </div-->
         </div>
 
-        <script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-        <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/1.5.1/socket.io.min.js"></script>
-
-        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
         <script src="{{ url_for('static',filename='hierarchy.js') }}"></script>
         <script src="{{ url_for('static',filename='main.js') }}"></script>
         <script src="{{ url_for('static',filename='ConvTree.js') }}"></script>
         <!--script src="{{ url_for('static',filename='graph.js') }}"></script-->
         <!--script src="{{ url_for('static',filename='js/TextLevelView.js') }}"--></script>
+    
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $('#right').BootSideMenu({
+                    side:"right",
+                    closeOnClick: false
+                });
+            });
+        </script>
     </body>
 </html>

@@ -219,11 +219,11 @@ Vue.component('product', {
             <input-box @review-submitted="addReview"></input-box>
         </div>
 
-        <div id="tri" class="triple">
+        <!--div id="tri" class="triple">
             <label for="tri"> Triple Result </label>
             <p/>
             <textarea id="tripleResult" style="height: 100%; padding: 20px;"> print triple here! </textarea>
-        </div>
+        </div-->
        
     </div>
     `,
@@ -327,36 +327,36 @@ Vue.component('input-box', {
             <button type="submit" class="button" id = "button-submit"> Run </button>
         </p-->
 
-        <p>
+        <div id="sliding-details">
             <label> Other alternatives of this entity: </label>
             <div class="form-check">
                 <input id="radio0" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option0" value="0">
                 <label id="label0" class="form-check-label" for="option0">
-                    {{candiSent[0]}}
+                
                 </label>
             </div>
             <div class="form-check">
                 <input id="radio1" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option1" value="1">
                 <label id="label1" class="form-check-label" for="option1">
-                    {{candiSent[1]}}
+                
                 </label>
             </div>
             <div class="form-check">
                 <input id="radio2" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option2" value="2">
                 <label id="label2" class="form-check-label" for="option2">
-                    {{candiSent[2]}}
+                
                 </label>
             </div>
             <div class="form-check">
                 <input id="radio3" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option3" value="3">
                 <label id="label3" class="form-check-label" for="option3">
-                    {{candiSent[3]}}
+                
                 </label>
             </div>
             <div class="form-check">
                 <input id="radio4" class="form-check-input" type="radio" v-model="chooseSent" name="options" id="option4" value="4">
                 <label id="label4" class="form-check-label" for="option4">
-                    {{candiSent[4]}}
+                
                 </label>
             </div>
             <div class="form-check">
@@ -365,7 +365,7 @@ Vue.component('input-box', {
                     Nothing seems correct
                 </label>
             </div>
-        </p>
+        </div>
     </form>
     `,
     data(){

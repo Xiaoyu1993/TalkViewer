@@ -145,11 +145,16 @@ var margin = {top: 90, right: 90, bottom: 60, left: 90},
     console.log(height);
 
 var index = 0,
-    duration = 750,
-    root;
+    duration = 1750,
+    leafRadius = 20,
+    nodeRadius = 10,
+    root,
+    startTime;
 
 var counter = 0;
 var treeData = {};
+var colorMap = new Map();
+var treeColors = d3.scaleOrdinal(d3.schemeSet2);
 
 // just leaving this global so i can mess with it in the console
 var nodes;
@@ -173,21 +178,34 @@ buildHeap( initData )
 
 function buildHeap(inData){
 
-   var newsource = {name: inData[0], children: getChildren(0, inData) }
+  var newsource = {name: inData[0], children: getChildren(0, inData) }
 //   console.log('dl', newsource)
 
-   //root = d3.hierarchy(newsource, function(d) { return d.children; });
-   root = hierarchy(inData);
+  //root = d3.hierarchy(newsource, function(d) { return d.children; });
+  root = hierarchy(inData);
 
-   console.log(root);
+  console.log(root);
 
-   root.x0 = width/2;
-   root.y0 = 0;
+  root.x0 = width/2;
+  root.y0 = 0;
 
-   update.treeLayout = d3.tree()
-                          .size([width, height]);
+  update.treeLayout = d3.tree()
+                        .size([width, height]);
+  
+  start = Date.now();
 
-   update(root)
+  update(root)
+}
+
+function RetrieveColor(category) {
+  if (category) {
+    if (!colorMap.has(category))
+      // current color scheme is based on d3 default colors
+      colorMap.set(category, treeColors(colorMap.size));
+    return colorMap.get(category);
+  } else {
+    return "gray";
+  }
 }
 
 function update(source){
@@ -200,6 +218,7 @@ function update(source){
     var links = treeData.descendants().slice(1);
     totalLevels = treeData.height;
     //console.log(totalLevels)
+    d3.selectAll(".text").remove();
 
     // ****************** Nodes section ***************************
     // Update the nodes...
@@ -239,47 +258,8 @@ function update(source){
     nodeEnter.append('circle')
             .attr('class', 'node')
             .attr('r', 1e-6)
-            .style("opacity", function(d) {
-              return d.thumbnail ? .9 : .9;
-            })
-            .style("fill", function(d) {
-                return d._children ? "lightsteelblue" : "#fff";
-            });
-
-    /*nodeEnter.append("image")
-            .attr("xlink:href", function(d) { return d.thumbnail; })
-            .attr("x", "-20px")
-            .attr("y", "-20px")
-            .attr("width", "40px")
-            .attr("height", "40px");*/
-
-    var config = {
-      "avatar_size": 20//define the size of teh circle radius
-    }
-    /*var defs = svg.append('svg:defs');
-    nodeEnter.append('circle')
-            .attr('class', 'node')
-            .attr('r', 1e-6)
-            //.style("fill", "#fff")
-            .attr("fill", function(d, i) {
-              //if(d.thumbnail) {
-                var catpattern = defs.append("pattern")
-                .attr("id", "grump_avatar" + i)
-                .attr("width", config.avatar_size)
-                .attr("height", config.avatar_size)
-                .attr("patternUnits", "userSpaceOnUse")
-                
-                catpattern.append("image")
-                  .attr("xlink:href", d.thumbnail)
-                  .attr("width", config.avatar_size)
-                  .attr("height", config.avatar_size)
-                  .attr("x", 0)
-                  .attr("y", 0);
-                return "url(#grump_avatar" + i + ")"
-              //} else {
-              //  return "#fff";
-              //}
-            });*/
+            .style("opacity", 1.0)
+            .style("fill", "#fff");
 
     // Add labels for the nodes
     nodeEnter.append('text')
@@ -287,7 +267,9 @@ function update(source){
             //.attr("x", function(d) {
             //        return d.children || d._children ? -13 : 13;
             //})
-            .attr("y", 20)
+            .attr("y", function(d) {
+              return d.children ? nodeRadius+10 : leafRadius+10; 
+            })
             .attr("text-anchor", function(d) {
                     //return d.children || d._children ? "end" : "start";
                     return d.children || d._children ? "middle" : "middle";
@@ -311,17 +293,41 @@ function update(source){
     // Update the node attributes and style
     nodeUpdate.select('circle.node')
             .attr('r', function(d) {
-                return d.depth>0? 10 : 0; // to draw the one on the ground as well
+              if (d.thumbnail) // leave nodes
+                return leafRadius;
+              else //intermediate nodes
+                return d.depth>0? nodeRadius : 0; // to draw the one on the ground as well
             })
-            .style("fill", function(d) {
-                return d._children ? "lightsteelblue" : "#fff";
+            .style("fill", function(d, i) {
+              //show thumbnaill or corresponding color
+              if (!d.children && d.thumbnail) {
+                var defs = svg.append("defs").attr("id", "imgdefs")
+
+                var catpattern = defs.append("pattern")
+                                        .attr("id", "catpattern" + i)
+                                        .attr("height", 1)
+                                        .attr("width", 1)
+
+                var img_w = 90,
+                    img_h = 90; 
+                catpattern.append("image")
+                        .attr("x", -(img_w/2 -leafRadius))
+                        .attr("y", -(img_h/2 -leafRadius))
+                        .attr("width", img_w)
+                        .attr("height", img_h)
+                        .attr("xlink:href", d.thumbnail)
+
+                return "url(#catpattern" + i + ")";
+              } else {
+                return RetrieveColor(d.category);
+              }
             })
             .attr('cursor', 'pointer');
 
 
     // Remove nodes that should be removed (move them to source than disappear)
     var nodeExit = node.exit().transition()
-            //.duration(duration)
+            .duration(duration)
             .attr("transform", function(d) {
                     return "translate(" + source.x + "," + (height - source.y) + ")";
                 })
@@ -515,6 +521,8 @@ function click(d) {
           candiText += " (Selected)"
         $("#label" + i.toString()).text(candiText);
       }
+
+      $('#right').BootSideMenu.toggle();
   
       $('input[name="options"]').click( function() {
         //console.log(d.candidate);
@@ -532,7 +540,7 @@ function click(d) {
                 result[0].sentence = d.sentence;
   
                 //remove old branch
-                singleParent = d;
+                /*singleParent = d;
                 while (singleParent.parent.children.length == 1) {
                   singleParent = singleParent.parent;
                 } 
@@ -541,7 +549,10 @@ function click(d) {
                 //singleParent._children = singleParent.children;
                 placeToRemove.children = placeToRemove.children.filter(function(child){
                   return child.id != singleParent.id;
-                });
+                });*/
+
+
+                updateHeap(root.remove(d));
                 
   
                 //add new branch

@@ -45,19 +45,19 @@ body {
 
 .left-column {
   float: left;
-  width: 40%;
+  width: 48%;
   height: 90%;
   padding: 20px 20px 20px 20px;
-  margin: 0px 10px 20px 20px;
+  margin: 50px 10px 20px 50px;
   border: 1px solid #d8d8d8; 
 }
 
 .middle-column {
-  float: left;
-  width: 40%;
+  float: right;
+  width: 46%;
   height: 90%;
   padding: 20px 20px 20px 20px;
-  margin: 0px 10px 20px 20px;
+  margin: 50px 10px 20px 20px;
   border: 1px solid #d8d8d8; 
 }
 
@@ -66,7 +66,7 @@ body {
   width: 15%;
   height: 90%;
   padding: 20px 20px 20px 20px;
-  margin: 0px 20px 20px 10px;
+  margin: 50px 20px 20px 10px;
   border: 1px solid #d8d8d8; 
 }
 
@@ -152,8 +152,8 @@ textarea {
 
 .node circle {
   fill: #fff;
-  stroke: #16C0B0;
-  stroke-width: 1.5px;
+  stroke: #000;
+  stroke-width: .5px;
 }
 
 .node text {

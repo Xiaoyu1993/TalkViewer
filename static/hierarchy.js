@@ -183,12 +183,11 @@ function node_insert(entity) {
     return;
   }
 
-  console.log(this);
   var node = this; // make nodeData points to root
   var nodes = [node];
   var insertPos = null;
 
-  pathName.forEach(name => {
+  pathName.forEach(function (name, idx) {
     var contains = false;
 
     // check if current name already exists
@@ -211,10 +210,14 @@ function node_insert(entity) {
       newNode.parent = node;
       newNode.depth = node.depth + 1;
       newNode.height = 0;
-      newNode.abstract = entity.abstract;
-      newNode.thumbnail = entity.thumbnail;
-      newNode.candidate = entity.candidate;
-      newNode.sentence = entity.sentence;
+      newNode.category = pathName.length>2 ? pathName[1] : ''; // set category as the first-level classification of path
+      if (idx == pathName.length-1) {
+        newNode.abstract = entity.abstract;
+        newNode.thumbnail = entity.thumbnail;
+        newNode.candidate = entity.candidate;
+        newNode.sentence = entity.sentence;
+        newNode.timeStamp = Date.now();
+      }
       // push the new node into node.children
       node.children.push(newNode);
     }
@@ -255,6 +258,21 @@ function node_insert(entity) {
   return insertPos;
 }
 
+function branch_remove(node) {
+  //remove old branch
+  singleParent = node;
+  while (singleParent.parent.children.length == 1) {
+    singleParent = singleParent.parent;
+  } 
+  placeToRemove = singleParent.parent;
+  //console.log($inArray(singleParent, placeToRemove.children));
+  //singleParent._children = singleParent.children;
+  placeToRemove.children = placeToRemove.children.filter(function(child){
+    return child.id != singleParent.id;
+  });
+  return placeToRemove;
+}
+
 function Node(data) {
   this.data = data;
   this.depth =
@@ -264,6 +282,8 @@ function Node(data) {
   this.thumbnail = null;
   this.candidate = null;
   this.sentence = null;
+  this.category = null;
+  this.timeStamp = null;
 }
 
 Node.prototype = hierarchy.prototype = {
@@ -280,5 +300,6 @@ Node.prototype = hierarchy.prototype = {
   leaves: node_leaves,
   links: node_links,
   copy: node_copy,
-  insert: node_insert
+  insert: node_insert,
+  remove: branch_remove
 };

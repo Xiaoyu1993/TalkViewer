@@ -358,7 +358,7 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 starterbot_id = None
 
 # constants
-RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
+RTM_READ_DELAY = 3 #delay (second) between reading from RTM
 EXAMPLE_COMMAND = "do"
 
 
@@ -374,17 +374,17 @@ def handle_command(command, channel):
     if command.startswith(EXAMPLE_COMMAND):
         response = "Sure...write some more code then I can do that!"
 
-    # send updated data to visualization
-    socketio.emit('server_response',
-                {'data': response},
-                namespace='/ontoTree')
-
     # Sends the response back to slack
     slack_client.api_call(
         "chat.postMessage",
         channel=channel,
         text=command
     )
+
+    # send updated data to visualization
+    socketio.emit('server_response',
+                {'data': response},
+                namespace='/ontoTree')
 
 def background_thread():
     # for reading in Slack conversation

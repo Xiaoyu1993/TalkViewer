@@ -10787,11 +10787,11 @@ function m_tree() {
           ky = dy / (bottom.depth || 1);
       root.eachBefore(function(node) {
         node.x = (node.x + tx) * kx;
-        //node.y = node.depth * ky;
-        if(node.depth == 0 || node.depth == 1)
+        node.y = node.depth * ky;
+        /*if(node.depth == 0 || node.depth == 1)
           node.y = node.depth * ky;
         else
-          node.y = ky + 5*Math.log10(node.depth) * ky;
+          node.y = ky + 5*Math.log10(node.depth) * ky;*/
       });
     }
 
